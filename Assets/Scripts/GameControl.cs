@@ -211,6 +211,39 @@ public class GameControl : MonoBehaviour {
                      playerToMove = 0;
                  }
              }
+             else if (tile != null && tile.effect == SpecialTile.TileEffect.QuestionTile)
+             {
+                 // Question Tile - Show trivia popup
+                 if (TriviaPopup.Instance != null)
+                 {
+                     playerToMove = 0; // Reset immediately to prevent infinite loop
+                     TriviaPopup.Instance.ShowQuestion(tile.GetCategoryString(), 1, (isCorrect) =>
+                     {
+                         if (isCorrect)
+                         {
+                             // Correct answer - grant reroll
+                             gameStatusText.gameObject.SetActive(true);
+                             gameStatusText.GetComponent<Text>().text = "Correct! Extra Roll!";
+                             StartCoroutine(HideStatusText(1.5f));
+                             dice.GetComponent<Dice>().SetTurn(1);
+                             dice.GetComponent<Dice>().ResetDice();
+                         }
+                         else
+                         {
+                             // Wrong answer - switch turn
+                             SwitchTurn(2);
+                             dice.GetComponent<Dice>().ResetDice();
+                         }
+                     });
+                 }
+                 else
+                 {
+                     // No trivia popup - treat as normal tile
+                     SwitchTurn(2);
+                     dice.GetComponent<Dice>().ResetDice();
+                     playerToMove = 0;
+                 }
+             }
              else if (tile != null && tile.effect == SpecialTile.TileEffect.SkipTurn)
              {
                   player1MissTurn = true;
@@ -267,6 +300,39 @@ public class GameControl : MonoBehaviour {
                      // No destination? Treat as normal.
                      player2MoveText.gameObject.SetActive(false);
                      player1MoveText.gameObject.SetActive(true);
+                     dice.GetComponent<Dice>().ResetDice();
+                     playerToMove = 0;
+                 }
+             }
+             else if (tile != null && tile.effect == SpecialTile.TileEffect.QuestionTile)
+             {
+                 // Question Tile - Show trivia popup
+                 if (TriviaPopup.Instance != null)
+                 {
+                     playerToMove = 0; // Reset immediately to prevent infinite loop
+                     TriviaPopup.Instance.ShowQuestion(tile.GetCategoryString(), 2, (isCorrect) =>
+                     {
+                         if (isCorrect)
+                         {
+                             // Correct answer - grant reroll
+                             gameStatusText.gameObject.SetActive(true);
+                             gameStatusText.GetComponent<Text>().text = "Correct! Extra Roll!";
+                             StartCoroutine(HideStatusText(1.5f));
+                             dice.GetComponent<Dice>().SetTurn(-1);
+                             dice.GetComponent<Dice>().ResetDice();
+                         }
+                         else
+                         {
+                             // Wrong answer - switch turn
+                             SwitchTurn(1);
+                             dice.GetComponent<Dice>().ResetDice();
+                         }
+                     });
+                 }
+                 else
+                 {
+                     // No trivia popup - treat as normal tile
+                     SwitchTurn(1);
                      dice.GetComponent<Dice>().ResetDice();
                      playerToMove = 0;
                  }

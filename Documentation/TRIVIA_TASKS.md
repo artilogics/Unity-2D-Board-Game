@@ -1,38 +1,38 @@
 # Trivia Board Game Expansion
 
 ## Core Systems
-- [ ] CSV Question System
-  - [ ] Create CSV parser
-  - [ ] Question data structure
-  - [ ] Category tracking (8 categories)
-  - [ ] Question pool management (no repeats)
-  - [ ] Priority system (incorrect answers first when exhausted)
+- [/] CSV Question System
+  - [x] Create CSV parser
+  - [x] Question data structure
+  - [x] Category tracking (8 categories)
+  - [x] Question pool management (no repeats)
+  - [x] Priority system (incorrect answers first when exhausted)
 
 ## Points System
-- [ ] Player points tracking
+- [x] Player points tracking
 - [ ] UI display for points
 - [ ] Point rewards/penalties
-- [ ] Win condition (correct from all 8 categories → final round)
+- [x] Win condition (correct from all 8 categories → final round)
 
 ## Trivia UI
-- [ ] Question popup panel
-- [ ] Question text display
-- [ ] ABCD option buttons
-- [ ] Confirm button
-- [ ] Correct/wrong feedback
-- [ ] Category progress indicator
+- [x] Question popup panel
+- [x] Question text display
+- [x] ABCD option buttons
+- [x] Confirm button
+- [x] Correct/wrong feedback
+- [x] Category progress indicator
 
 ## Game Logic
-- [ ] Question tile trigger
-- [ ] Answer validation
-- [ ] Reroll on correct answer
-- [ ] Category completion tracking
+- [x] Question tile trigger
+- [x] Answer validation
+- [x] Reroll on correct answer
+- [x] Category completion tracking
 - [ ] Final round trigger
 
 ## Circular Board
-- [ ] Waypoint looping logic
-- [ ] Movement wrapping
-- [ ] Update FollowThePath for circular mode
+- [x] Waypoint looping logic
+- [x] Movement wrapping
+- [x] Update FollowThePath for circular mode
 - [ ] Win condition for circular board
 
 ## Scene Setup

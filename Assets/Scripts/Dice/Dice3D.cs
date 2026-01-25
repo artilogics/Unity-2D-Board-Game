@@ -48,7 +48,7 @@ public class Dice3D : MonoBehaviour {
         
         if (isRolling && !rb.isKinematic && timeSinceRoll > 1.0f && rb.linearVelocity.magnitude < 0.05f) {
             if ((IsCocked() || touchingWall) && !isRetrying) {
-                Debug.LogWarning("Dice stuck - disabling walls to free it.");
+                Debug.Log("Dice stuck - disabling walls to free it.");
                 DisableWalls();
                 isRetrying = true; // Prevent spam
             }
