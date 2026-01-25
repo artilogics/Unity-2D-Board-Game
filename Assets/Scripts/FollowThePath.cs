@@ -18,6 +18,9 @@ public class FollowThePath : MonoBehaviour {
     public Vector2 playerOffset;
     public bool isOverlapping = false;
 
+    [Header("Board Type")]
+    public bool isCircular = false; // Enable for circular boards (trivia mode)
+
     [Header("Interaction Settings")]
     public float interactionBounceHeight = 0.5f;
     public float interactionDuration = 0.4f;
@@ -79,9 +82,19 @@ public class FollowThePath : MonoBehaviour {
     {
         stepDirection = (steps > 0) ? 1 : -1;
         targetIndex = waypointIndex + steps;
-        // Clamp logic can be added here if needed to prevent going out of bounds
-        if (targetIndex < 0) targetIndex = 0;
-        if (targetIndex >= waypoints.Length) targetIndex = waypoints.Length - 1;
+        
+        if (isCircular)
+        {
+            // Wrap around for circular boards
+            while (targetIndex < 0) targetIndex += waypoints.Length;
+            targetIndex = targetIndex % waypoints.Length;
+        }
+        else
+        {
+            // Clamp for linear boards
+            if (targetIndex < 0) targetIndex = 0;
+            if (targetIndex >= waypoints.Length) targetIndex = waypoints.Length - 1;
+        }
         
         moveAllowed = true;
     }

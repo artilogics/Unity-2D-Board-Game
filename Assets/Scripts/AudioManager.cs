@@ -31,6 +31,7 @@ public class AudioManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            LoadAudioSettings(); // Load saved settings
             SetupAudioSources();
         }
         else
@@ -38,6 +39,22 @@ public class AudioManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+    }
+
+    void LoadAudioSettings()
+    {
+        // Load saved settings (defaults to 1 = true if not set)
+        musicEnabled = PlayerPrefs.GetInt("AudioMusicEnabled", 1) == 1;
+        sfxEnabled = PlayerPrefs.GetInt("AudioSFXEnabled", 1) == 1;
+        Debug.Log($"Loaded audio settings: Music={musicEnabled}, SFX={sfxEnabled}");
+    }
+
+    void SaveAudioSettings()
+    {
+        PlayerPrefs.SetInt("AudioMusicEnabled", musicEnabled ? 1 : 0);
+        PlayerPrefs.SetInt("AudioSFXEnabled", sfxEnabled ? 1 : 0);
+        PlayerPrefs.Save();
+        Debug.Log($"Saved audio settings: Music={musicEnabled}, SFX={sfxEnabled}");
     }
 
     void SetupAudioSources()
@@ -123,6 +140,7 @@ public class AudioManager : MonoBehaviour
     public void ToggleMusic(bool enabled)
     {
         musicEnabled = enabled;
+        SaveAudioSettings(); // Persist setting
         if (enabled)
         {
             if (!musicSource.isPlaying)
@@ -140,6 +158,7 @@ public class AudioManager : MonoBehaviour
     public void ToggleSFX(bool enabled)
     {
         sfxEnabled = enabled;
+        SaveAudioSettings(); // Persist setting
         Debug.Log($"SFX {(enabled ? "enabled" : "disabled")}");
     }
 
