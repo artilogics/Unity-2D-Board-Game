@@ -1487,6 +1487,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 627970381}
   m_CullTransparentMesh: 1
+--- !u!1 &634117089
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 634117091}
+  - component: {fileID: 634117090}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &634117090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634117089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0938259ecd81099458ea3bf74fb7cdc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioManager
+  musicIntro: {fileID: 8300000, guid: 2144887d4b31f644198b39648e3c8857, type: 3}
+  musicLoops:
+  - {fileID: 8300000, guid: c4838ebc84f81ff4c98ca403cea4970b, type: 3}
+  - {fileID: 8300000, guid: b318a5b6b565a714f8e968f6743db63e, type: 3}
+  - {fileID: 8300000, guid: 22f425d533222ab4ca8fb99a551f61af, type: 3}
+  - {fileID: 8300000, guid: f640684926369424a8d9ad63a7c799ae, type: 3}
+  jumpSFX: {fileID: 8300000, guid: 6a72c1be3c388f5469af46a7cd795b6f, type: 3}
+  diceBounce:
+  - {fileID: 8300000, guid: 695b7c15bac08f64bbca909a5f565c99, type: 3}
+  - {fileID: 8300000, guid: a08cfdc18b6a3ba41a42a3018e90b468, type: 3}
+  musicEnabled: 0
+  sfxEnabled: 1
+--- !u!4 &634117091
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634117089}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.17626, y: 1.44064, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &675316065
 GameObject:
   m_ObjectHideFlags: 0
@@ -3300,7 +3356,7 @@ GameObject:
   - component: {fileID: 1864789895}
   - component: {fileID: 1864789896}
   - component: {fileID: 1864789898}
-  - component: {fileID: 1864789897}
+  - component: {fileID: 1864789899}
   m_Layer: 0
   m_Name: DiceVisual_3D
   m_TagString: Untagged
@@ -3357,31 +3413,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &1864789897
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1864789894}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed1682b2caca7084a9ea8b9fe7cbc6ea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DiceScript
-  parentDice: {fileID: 1626740608}
-  isRolling: 0
-  useCustomGravity: 1
-  customGravity: {x: 0, y: 0, z: 9.81}
-  wallsToIgnore:
-  - {fileID: 172770562}
-  - {fileID: 1003041758}
-  - {fileID: 1397033185}
-  - {fileID: 1119419470}
-  - {fileID: 1949365945}
-  spawnPoint: {fileID: 1958972412}
-  upForce: 10
-  torqueAmount: 50
 --- !u!65 &1864789898
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3403,6 +3434,31 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 7.6, y: 7.6, z: 7.6}
   m_Center: {x: 0, y: 0, z: -0.53}
+--- !u!114 &1864789899
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1864789894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70847e17d5bbe794d9b3d8e447ef0204, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Dice3D
+  parentDice: {fileID: 1626740608}
+  isRolling: 0
+  useCustomGravity: 1
+  customGravity: {x: 0, y: 0, z: 9.81}
+  wallsToIgnore:
+  - {fileID: 172770562}
+  - {fileID: 1003041758}
+  - {fileID: 1397033185}
+  - {fileID: 1119419470}
+  - {fileID: 1949365945}
+  spawnPoint: {fileID: 1958972412}
+  upForce: 10
+  torqueAmount: 10
 --- !u!850595691 &1870776490
 LightingSettings:
   m_ObjectHideFlags: 0
@@ -3543,7 +3599,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1886474311}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ecfb781c7189784091b72c7cfde47b7, type: 3}
+  m_Script: {fileID: 11500000, guid: 461cd13b69c2c774eb6de01416f22d37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DiceCheckZoneScript
   parentDice: {fileID: 1626740608}
@@ -3636,7 +3692,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1958972412}
   m_Layer: 0
-  m_Name: DiceDrop
+  m_Name: SpawnPoint
   m_TagString: Untagged
   m_Icon: {fileID: 1206586993520771344, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -3866,6 +3922,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 874268003}
   - {fileID: 84645353}
+  - {fileID: 634117091}
   - {fileID: 959537444}
   - {fileID: 519420032}
   - {fileID: 794073829}

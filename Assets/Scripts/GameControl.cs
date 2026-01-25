@@ -23,16 +23,14 @@ public class GameControl : MonoBehaviour {
 
     public static void SwitchTurn(int nextPlayer)
     {
-        bool skipped = false;
         if (nextPlayer == 1)
         {
             if (player1MissTurn)
             {
-                skipped = true;
                 player1MissTurn = false;
                 gameStatusText.gameObject.SetActive(true);
                 gameStatusText.GetComponent<Text>().text = "Player 1 Missed Turn!";
-                GameControl instance = GameObject.FindObjectOfType<GameControl>();
+                GameControl instance = GameObject.FindFirstObjectByType<GameControl>();
                 if (instance != null) instance.StartCoroutine(instance.HideStatusText(2.0f));
                 
                 // Return control to Player 2
@@ -54,11 +52,10 @@ public class GameControl : MonoBehaviour {
         {
             if (player2MissTurn)
             {
-                skipped = true;
                 player2MissTurn = false;
                 gameStatusText.gameObject.SetActive(true);
                 gameStatusText.GetComponent<Text>().text = "Player 2 Missed Turn!";
-                GameControl instance = GameObject.FindObjectOfType<GameControl>();
+                GameControl instance = GameObject.FindFirstObjectByType<GameControl>();
                 if (instance != null) instance.StartCoroutine(instance.HideStatusText(2.0f));
                 
                 // Return control to Player 1
@@ -475,7 +472,7 @@ public class GameControl : MonoBehaviour {
         // `StartCoroutine` is only used in Update.
         // We need a reference to the instance to run Coroutine.
         // Let's find the instance.
-        GameControl instance = GameObject.FindObjectOfType<GameControl>();
+        GameControl instance = GameObject.FindFirstObjectByType<GameControl>();
         if (instance != null) instance.StartCoroutine(instance.HideStatusText(1.5f));
 
         // Switch Turn

@@ -17,9 +17,9 @@ public class Dice3D : MonoBehaviour {
     [Header("Anti-Cocked Settings")]
     public GameObject[] wallsToIgnore;
     private bool touchingWall = false;
-    private int cockedRetryCount = 0;
     private bool isRetrying = false;
     private float rollStartTime = 0f;
+    private bool hasPlayedBounce = false; // Only play bounce once per roll
 
     // Use this for initialization
     void Start () {
@@ -27,7 +27,7 @@ public class Dice3D : MonoBehaviour {
         rb.useGravity = !useCustomGravity; 
         rb.isKinematic = true; // Wait for click
         
-        if (parentDice == null) parentDice = FindObjectOfType<Dice>();
+        if (parentDice == null) parentDice = FindFirstObjectByType<Dice>();
     }
     
     void FixedUpdate () {
@@ -97,7 +97,6 @@ public class Dice3D : MonoBehaviour {
         EnableWalls();
         
         // Reset state
-        cockedRetryCount = 0;
         isRetrying = false;
     }
     
@@ -121,6 +120,7 @@ public class Dice3D : MonoBehaviour {
         
         isRolling = true;
         rollStartTime = Time.time; // Record when throw started
+        hasPlayedBounce = false; // Reset for new roll
         
         // Enable physics
         rb.isKinematic = false;
@@ -160,6 +160,17 @@ public class Dice3D : MonoBehaviour {
     }
 
     private void OnCollisionEnter(Collision collision) {
+        // Play bounce sound ONCE on first board impact
+        if (isRolling && !hasPlayedBounce && rb.linearVelocity.magnitude > 0.5f)
+        {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayDiceBounce();
+                hasPlayedBounce = true; // Only play once per roll
+            }
+        }
+        
+        // Check wall collisions
         if (wallsToIgnore != null) {
             foreach (var wall in wallsToIgnore) {
                 if (wall != null && collision.gameObject == wall) touchingWall = true;
