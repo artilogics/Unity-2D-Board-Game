@@ -1,39 +1,88 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class SettingsMenu : MonoBehaviour
 {
-    [Header("UI Elements")]
-    public Toggle musicToggle;
-    public Toggle sfxToggle;
+    [Header("Music Icon")]
+    public Image musicIcon;
+    public Sprite musicOnSprite;
+    public Sprite musicOffSprite;
+    private bool musicEnabled = true;
+
+    [Header("SFX Icon")]
+    public Image sfxIcon;
+    public Sprite sfxOnSprite;
+    public Sprite sfxOffSprite;
+    private bool sfxEnabled = true;
 
     void Start()
     {
-        // Initialize toggles with current settings
+        // Initialize with current AudioManager settings
         if (AudioManager.Instance != null)
         {
-            musicToggle.isOn = AudioManager.Instance.musicEnabled;
-            sfxToggle.isOn = AudioManager.Instance.sfxEnabled;
+            musicEnabled = AudioManager.Instance.musicEnabled;
+            sfxEnabled = AudioManager.Instance.sfxEnabled;
         }
 
-        // Add listeners
-        musicToggle.onValueChanged.AddListener(OnMusicToggle);
-        sfxToggle.onValueChanged.AddListener(OnSFXToggle);
+        // Update visuals
+        UpdateMusicVisual();
+        UpdateSFXVisual();
+
+        // Add click detection to images
+        AddClickListener(musicIcon, ToggleMusicButton);
+        AddClickListener(sfxIcon, ToggleSFXButton);
     }
 
-    void OnMusicToggle(bool value)
+    private void AddClickListener(Image image, UnityEngine.Events.UnityAction action)
     {
+        if (image == null) return;
+
+        // Add Button component if it doesn't exist
+        Button btn = image.GetComponent<Button>();
+        if (btn == null)
+        {
+            btn = image.gameObject.AddComponent<Button>();
+            btn.transition = Selectable.Transition.None; // No visual transition
+        }
+        btn.onClick.AddListener(action);
+    }
+
+    public void ToggleMusicButton()
+    {
+        musicEnabled = !musicEnabled;
+        UpdateMusicVisual();
+
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.ToggleMusic(value);
+            AudioManager.Instance.ToggleMusic(musicEnabled);
         }
     }
 
-    void OnSFXToggle(bool value)
+    public void ToggleSFXButton()
     {
+        sfxEnabled = !sfxEnabled;
+        UpdateSFXVisual();
+
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.ToggleSFX(value);
+            AudioManager.Instance.ToggleSFX(sfxEnabled);
+        }
+    }
+
+    private void UpdateMusicVisual()
+    {
+        if (musicIcon != null)
+        {
+            musicIcon.sprite = musicEnabled ? musicOnSprite : musicOffSprite;
+        }
+    }
+
+    private void UpdateSFXVisual()
+    {
+        if (sfxIcon != null)
+        {
+            sfxIcon.sprite = sfxEnabled ? sfxOnSprite : sfxOffSprite;
         }
     }
 }
