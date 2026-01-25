@@ -1,21 +1,21 @@
 Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer,Category
-"What is the chemical symbol for gold?",Au,Go,Gd,Ag,A,Science
-"What planet is known as the Red Planet?",Venus,Mars,Jupiter,Saturn,B,Science
-"What is H2O?",Hydrogen,Oxygen,Water,Helium,C,Science
-"Who painted the Mona Lisa?","Leonardo da Vinci","Pablo Picasso","Vincent van Gogh","Michelangelo",A,Art
-"What year did World War II end?",1943,1944,1945,1946,C,History
-"What is the capital of France?",London,Berlin,Paris,Madrid,C,Geography
-"Which sport uses a shuttlecock?",Tennis,Badminton,Squash,Volleyball,B,Sports
-"Who wrote 'Romeo and Juliet'?","Charles Dickens","William Shakespeare","Jane Austen","Mark Twain",B,Literature
-"What is the largest ocean on Earth?",Atlantic,Indian,Arctic,Pacific,D,Geography
-"What is the speed of light?","300,000 km/s","150,000 km/s","450,000 km/s","200,000 km/s",A,Science
-"In what year did the Titanic sink?",1910,1912,1914,1916,B,History
-"Which movie won the Oscar for Best Picture in 2020?",Joker,1917,Parasite,"Once Upon a Time in Hollywood",C,Entertainment
-"What is the smallest prime number?",0,1,2,3,C,Science
-"Who was the first person to walk on the moon?","Neil Armstrong","Buzz Aldrin","Yuri Gagarin","John Glenn",A,History
-"What is the longest river in the world?",Amazon,Nile,Yangtze,Mississippi,B,Geography
-"How many players are on a soccer team?",9,10,11,12,C,Sports
-"What does CPU stand for?","Central Processing Unit","Computer Personal Unit","Central Processor Utility","Central Programming Unit",A,General
-"Which continent is the Sahara Desert located on?",Asia,Africa,Australia,"South America",B,Geography
-"What is the national sport of Canada?","Ice Hockey",Lacrosse,Basketball,Baseball,B,Sports
-"Who is known as the 'Father of Computers'?","Alan Turing","Charles Babbage","Steve Jobs","Bill Gates",B,General
+What is the chemical symbol for gold?,Au,Go,Gd,Ag,A,Science
+What planet is known as the Red Planet?,Venus,Mars,Jupiter,Saturn,B,Science
+What is H2O?,Hydrogen,Oxygen,Water,Helium,C,Science
+Who painted the Mona Lisa?,Leonardo da Vinci,Pablo Picasso,Vincent van Gogh,Michelangelo,A,Art
+What year did World War II end?,1943,1944,1945,1946,C,History
+What is the capital of France?,London,Berlin,Paris,Madrid,C,Geography
+Which sport uses a shuttlecock?,Tennis,Badminton,Squash,Volleyball,B,Sports
+Who wrote 'Romeo and Juliet'?,Charles Dickens,William Shakespeare,Jane Austen,Mark Twain,B,Literature
+What is the largest ocean on Earth?,Atlantic,Indian,Arctic,Pacific,D,Geography
+What is the speed of light?,"300,000 km/s","150,000 km/s","450,000 km/s","200,000 km/s",A,Science
+In what year did the Titanic sink?,1910,1912,1914,1916,B,History
+Which movie won the Oscar for Best Picture in 2020?,Joker,1917,Parasite,Once Upon a Time in Hollywood,C,Entertainment
+What is the smallest prime number?,0,1,2,3,C,Science
+Who was the first person to walk on the moon?,Neil Armstrong,Buzz Aldrin,Yuri Gagarin,John Glenn,A,History
+What is the longest river in the world?,Amazon,Nile,Yangtze,Mississippi,B,Geography
+How many players are on a soccer team?,9,10,11,12,C,Sports
+What does CPU stand for?,Central Processing Unit,Computer Personal Unit,Central Processor Utility,Central Programming Unit,A,General
+Which continent is the Sahara Desert located on?,Asia,Africa,Australia,South America,B,Geography
+What is the national sport of Canada?,Ice Hockey,Lacrosse,Basketball,Baseball,B,Sports
+Who is known as the 'Father of Computers'?,Alan Turing,Charles Babbage,Steve Jobs,Bill Gates,B,General

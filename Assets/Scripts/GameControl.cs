@@ -408,13 +408,44 @@ public class GameControl : MonoBehaviour {
 
         // Calculate potential indices
         int currentIdx = playerPath.waypointIndex;
-        int forwardIdx = currentIdx + diceSideThrown;
-        int backwardIdx = currentIdx - diceSideThrown;
+        bool isCircular = playerPath.isCircular;
+        bool atStartPosition = (currentIdx == -1);
+        
+        int forwardIdx, backwardIdx;
+        
+        if (isCircular && atStartPosition)
+        {
+            // At start position - calculate from start
+            forwardIdx = diceSideThrown; // Roll 2 → waypoint 2
+            backwardIdx = playerPath.waypoints.Length + (-diceSideThrown); // Roll 2 → waypoint 30 (if 32 waypoints)
+            
+            // Special case: Roll 1 from start - only one option
+            if (diceSideThrown == 1)
+            {
+                Debug.Log("Rolling 1 from start - auto-moving to waypoint 1");
+                if (forwardButton != null) forwardButton.SetActive(false);
+                if (backwardButton != null) backwardButton.SetActive(false);
+                MovePlayerForward();
+                return;
+            }
+        }
+        else
+        {
+            // Normal calculation
+            forwardIdx = currentIdx + diceSideThrown;
+            backwardIdx = currentIdx - diceSideThrown;
+        }
 
         // Setup Forward Button
-        if (forwardIdx < playerPath.waypoints.Length)
+        if (isCircular || forwardIdx < playerPath.waypoints.Length)
         {
-            if (forwardButton != null)
+            // Wrap for circular
+            if (isCircular)
+            {
+                while (forwardIdx >= playerPath.waypoints.Length) forwardIdx -= playerPath.waypoints.Length;
+            }
+            
+            if (forwardButton != null && forwardIdx < playerPath.waypoints.Length)
             {
                 SetupSilhouetteButton(forwardButton, playerPath.waypoints[forwardIdx].transform.position, playerSprite);
                 forwardButton.SetActive(true);
@@ -426,9 +457,15 @@ public class GameControl : MonoBehaviour {
         }
 
         // Setup Backward Button
-        if (backwardIdx >= 0)
+        if (isCircular || backwardIdx >= 0)
         {
-            if (backwardButton != null)
+            // Wrap for circular
+            if (isCircular)
+            {
+                while (backwardIdx < 0) backwardIdx += playerPath.waypoints.Length;
+            }
+            
+            if (backwardButton != null && backwardIdx >= 0 && backwardIdx < playerPath.waypoints.Length)
             {
                 SetupSilhouetteButton(backwardButton, playerPath.waypoints[backwardIdx].transform.position, playerSprite);
                 backwardButton.SetActive(true);

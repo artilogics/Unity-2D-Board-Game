@@ -20,6 +20,7 @@ public class FollowThePath : MonoBehaviour {
 
     [Header("Board Type")]
     public bool isCircular = false; // Enable for circular boards (trivia mode)
+    public Transform startPosition; // For circular boards - separate from waypoints array
 
     [Header("Interaction Settings")]
     public float interactionBounceHeight = 0.5f;
@@ -30,7 +31,7 @@ public class FollowThePath : MonoBehaviour {
 
     public bool moveAllowed = false;
 
-    private Vector2 startPosition;
+    private Vector2 jumpStartPosition; // Renamed to avoid conflict with circular board startPosition
     private float moveTimer;
     private SpriteRenderer sr;
     private Vector3 originalScale; // Store original scale
@@ -46,7 +47,19 @@ public class FollowThePath : MonoBehaviour {
     private void Start () {
         sr = GetComponent<SpriteRenderer>();
         originalScale = transform.localScale;
-        transform.position = waypoints[waypointIndex].transform.position; // Start centered, update loop will fix if overlapping
+        
+        // Initialize position
+        if (isCircular && startPosition != null)
+        {
+            // Circular board - start at separate start position
+            waypointIndex = -1; // Special index meaning "at start"
+            transform.position = startPosition.position;
+        }
+        else
+        {
+            // Linear board or circular without startPosition - start at waypoint 0
+            transform.position = waypoints[waypointIndex].transform.position;
+        }
 
         // Ensure we have a collider for OnMouseDown
         if (GetComponent<Collider2D>() == null)
@@ -63,7 +76,7 @@ public class FollowThePath : MonoBehaviour {
         }
         
         // Apply Offset Logic when Idle
-        if (!moveAllowed && !hopping && !isAnimatingJuice)
+        if (!moveAllowed && !hopping && !isAnimatingJuice && waypointIndex >= 0)
         {
             Vector3 targetPos = waypoints[waypointIndex].transform.position;
             if (isOverlapping)
@@ -81,26 +94,96 @@ public class FollowThePath : MonoBehaviour {
     public void StartMove(int steps)
     {
         stepDirection = (steps > 0) ? 1 : -1;
-        targetIndex = waypointIndex + steps;
         
-        if (isCircular)
+        // Check if we're at the start position (waypointIndex = -1 for circular start)
+        bool atStartPosition = (waypointIndex == -1);
+        
+        if (isCircular && atStartPosition)
         {
-            // Wrap around for circular boards
+            // First roll from start - map dice value to 0-indexed waypoints
+            // Roll 1 forward → waypoints[0] (1st tile counting forward)
+            // Roll 1 backward → waypoints[31] (1st tile counting backward, assuming 32 waypoints)
+            // Roll 3 forward → waypoints[2] (3rd tile)
+            // Roll 3 backward → waypoints[29] (3rd tile from end)
+            
+            targetIndex = (stepDirection > 0) ? (steps - 1) : (waypoints.Length + steps);
+            
+            // Ensure in bounds
             while (targetIndex < 0) targetIndex += waypoints.Length;
             targetIndex = targetIndex % waypoints.Length;
         }
         else
         {
-            // Clamp for linear boards
-            if (targetIndex < 0) targetIndex = 0;
-            if (targetIndex >= waypoints.Length) targetIndex = waypoints.Length - 1;
+            // Normal movement from a waypoint
+            targetIndex = waypointIndex + steps;
+            
+            if (isCircular)
+            {
+                // Wrap around for circular boards
+                while (targetIndex < 0) targetIndex += waypoints.Length;
+                targetIndex = targetIndex % waypoints.Length;
+            }
+            else
+            {
+                // Clamp for linear boards
+                if (targetIndex < 0) targetIndex = 0;
+                if (targetIndex >= waypoints.Length) targetIndex = waypoints.Length - 1;
+            }
         }
         
+        Debug.Log($"StartMove: waypointIndex={waypointIndex}, steps={steps}, targetIndex={targetIndex}");
         moveAllowed = true;
     }
 
     private void Move()
     {
+        // Special case: Moving from start position - jump directly to target
+        if (waypointIndex == -1)
+        {
+            // Initialize jump
+            if (moveTimer == 0f)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayJumpSound();
+                }
+                
+                jumpStartPosition = transform.position;
+            }
+
+            moveTimer += Time.deltaTime;
+            float t = moveTimer / moveDuration;
+
+            if (t >= 1f)
+            {
+                // Jump complete - land on target
+                waypointIndex = targetIndex;
+                transform.position = waypoints[waypointIndex].transform.position;
+                moveTimer = 0f;
+                StartCoroutine(FinalBounce());
+            }
+            else
+            {
+                // Parabolic jump directly to target
+                Vector2 endPosition = waypoints[targetIndex].transform.position;
+                Vector2 linearPos = Vector2.Lerp(jumpStartPosition, endPosition, t);
+                float height = Mathf.Sin(t * Mathf.PI) * jumpHeight;
+                transform.position = new Vector3(linearPos.x, linearPos.y + height, transform.position.z);
+                
+                // Flip sprite
+                if (endPosition.x < jumpStartPosition.x)
+                {
+                    sr.flipX = true;
+                }
+                else
+                {
+                    sr.flipX = false;
+                }
+            }
+            return;
+        }
+
+        // Normal movement (step by step through waypoints)
         if (waypointIndex != targetIndex)
         {
             // Initialize jump start for the next single step
@@ -112,13 +195,32 @@ public class FollowThePath : MonoBehaviour {
                     AudioManager.Instance.PlayJumpSound();
                 }
                 
-                startPosition = transform.position;
+                jumpStartPosition = transform.position;
                 
                 // Determine next immediate waypoint based on direction
                 int nextStepIndex = waypointIndex + stepDirection;
+                
+                // Handle circular wrapping
+                if (isCircular)
+                {
+                    if (nextStepIndex < 0) nextStepIndex = waypoints.Length - 1;
+                    if (nextStepIndex >= waypoints.Length) nextStepIndex = 0;
+                    
+                    // Skip StartWaypoint in circular mode
+                    if (waypoints[nextStepIndex].GetComponent<StartWaypoint>() != null)
+                    {
+                        Debug.Log($"Skipping StartWaypoint at index {nextStepIndex}");
+                        nextStepIndex += stepDirection;
+                        
+                        // Wrap again if needed
+                        if (nextStepIndex < 0) nextStepIndex = waypoints.Length - 1;
+                        if (nextStepIndex >= waypoints.Length) nextStepIndex = 0;
+                    }
+                }
+                
                 Vector2 endPos = waypoints[nextStepIndex].transform.position;
                 
-                if (endPos.x < startPosition.x)
+                if (endPos.x < jumpStartPosition.x)
                 {
                     sr.flipX = true;
                 }
@@ -135,6 +237,25 @@ public class FollowThePath : MonoBehaviour {
             {
                 // Finish jump (single step)
                 waypointIndex += stepDirection;
+                
+                // Handle circular wrapping
+                if (isCircular)
+                {
+                    if (waypointIndex < 0) waypointIndex = waypoints.Length - 1;
+                    if (waypointIndex >= waypoints.Length) waypointIndex = 0;
+                    
+                    // Skip StartWaypoint
+                    if (waypoints[waypointIndex].GetComponent<StartWaypoint>() != null)
+                    {
+                        Debug.Log($"Skipping StartWaypoint at index {waypointIndex}, jumping to next");
+                        waypointIndex += stepDirection;
+                        
+                        // Wrap again if needed
+                        if (waypointIndex < 0) waypointIndex = waypoints.Length - 1;
+                        if (waypointIndex >= waypoints.Length) waypointIndex = 0;
+                    }
+                }
+                
                 transform.position = waypoints[waypointIndex].transform.position;
                 moveTimer = 0f; // Reset for next jump
 
@@ -152,9 +273,17 @@ public class FollowThePath : MonoBehaviour {
             {
                 // Parabolic interpolation towards the next immediate waypoint
                 int nextStepIndex = waypointIndex + stepDirection;
+                
+                // Wrap for circular boards
+                if (isCircular)
+                {
+                    if (nextStepIndex < 0) nextStepIndex = waypoints.Length - 1;
+                    if (nextStepIndex >= waypoints.Length) nextStepIndex = 0;
+                }
+                
                 Vector2 endPosition = waypoints[nextStepIndex].transform.position;
                 
-                Vector2 linearPos = Vector2.Lerp(startPosition, endPosition, t);
+                Vector2 linearPos = Vector2.Lerp(jumpStartPosition, endPosition, t);
                 
                 // Add jump height (Sine wave 0->1->0)
                 float height = Mathf.Sin(t * Mathf.PI) * jumpHeight;
