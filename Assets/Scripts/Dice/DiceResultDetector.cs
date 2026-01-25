@@ -11,7 +11,7 @@ public class DiceResultDetector : MonoBehaviour {
     private int pendingResult = 0;
 
     void Start() {
-        parentDice = FindObjectOfType<Dice>();
+        parentDice = FindFirstObjectByType<Dice>();
     }
 
 	// Update is called once per frame
@@ -63,7 +63,7 @@ public class DiceResultDetector : MonoBehaviour {
                             resultReported = true;
                             
                             // Re-enable walls now that dice has settled and reported
-                            Dice3D diceScript = FindObjectOfType<Dice3D>();
+                            Dice3D diceScript = FindFirstObjectByType<Dice3D>();
                             if (diceScript != null) diceScript.EnableWalls();
                         }
                     }

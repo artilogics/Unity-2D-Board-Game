@@ -93,6 +93,12 @@ public class FollowThePath : MonoBehaviour {
             // Initialize jump start for the next single step
             if (moveTimer == 0f)
             {
+                // Play jump sound at start of each hop
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayJumpSound();
+                }
+                
                 startPosition = transform.position;
                 
                 // Determine next immediate waypoint based on direction
@@ -208,6 +214,12 @@ public class FollowThePath : MonoBehaviour {
         {
             if (waypoints[i] == target)
             {
+                // Play jump sound when hopping to shortcut
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayJumpSound();
+                }
+                
                 hopping = true;
                 moveAllowed = true; // Ensure Update doesn't block other things if needed, but we used !hopping check
                 StartCoroutine(HopTo(i, target.position));
