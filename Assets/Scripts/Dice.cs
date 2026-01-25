@@ -4,18 +4,37 @@ using UnityEngine;
 public class Dice : MonoBehaviour {
 
     private Sprite[] diceSides;
-    private SpriteRenderer rend;
+    
+    [Header("Visual References")]
+    public SpriteRenderer dice2DSprite;
+    public GameObject dice3DObject; // Drag the 3D Dice here
+
+    [Header("Settings")]
+    public bool use3DPhysics = true;
+    public bool enableDebugInput = true;
+
     private int whosTurn = 1;
     private bool coroutineAllowed = true;
-    
-    public bool enableDebugInput = true;
     public static int debugRollValue = 0;
 
 	// Use this for initialization
 	private void Start () {
-        rend = GetComponent<SpriteRenderer>();
+        // Fallback for existing setup
+        if (dice2DSprite == null) dice2DSprite = GetComponent<SpriteRenderer>();
+        
         diceSides = Resources.LoadAll<Sprite>("DiceSides/");
-        rend.sprite = diceSides[5];
+        
+        // Initialize Visuals
+        if (dice2DSprite != null)
+        {
+            dice2DSprite.sprite = diceSides[5];
+            dice2DSprite.enabled = !use3DPhysics; // Hide 2D if using 3D
+        }
+        
+        if (dice3DObject != null)
+        {
+            dice3DObject.SetActive(use3DPhysics); // Show/Hide 3D
+        }
 	}
 
     private void Update()
@@ -33,30 +52,70 @@ public class Dice : MonoBehaviour {
 
     private void OnMouseDown()
     {
+        // If using 3D physics, the 3D object handles the click via Dice3D.
+        // We ignore the click on the parent 2D object to prevent double-activation.
+        if (use3DPhysics && dice3DObject != null)
+        {
+             if (dice3DObject.activeSelf == false) dice3DObject.SetActive(true);
+             return; 
+        }
+
         if (!GameControl.gameOver && coroutineAllowed)
+        {
             StartCoroutine("RollTheDice");
+        }
+    }
+
+    // Called by Dice3D when it lands
+    public void ProcessDiceResult(int resultSide)
+    {
+        if (GameControl.gameOver) return;
+
+        // Visual Override (Debug)
+        if (debugRollValue > 0)
+        {
+             resultSide = debugRollValue;
+             debugRollValue = 0;
+             Debug.Log("Debug Override (3D): " + resultSide);
+        }
+
+        FinalizeTurn(resultSide);
     }
 
     private IEnumerator RollTheDice()
     {
         coroutineAllowed = false;
+        int resultSide = 0;
+
+        // --- 2D MODE (Legacy) ---
+        // Switch Visuals
+        if (dice2DSprite != null) dice2DSprite.enabled = true;
+
         int randomDiceSide = 0;
         for (int i = 0; i <= 20; i++)
         {
             randomDiceSide = Random.Range(0, 6);
-            rend.sprite = diceSides[randomDiceSide];
+            if (dice2DSprite != null) dice2DSprite.sprite = diceSides[randomDiceSide];
             yield return new WaitForSeconds(0.05f);
         }
 
-        // DEBUG OVERRIDE
+        // Debug Override
         if (debugRollValue > 0)
         {
             randomDiceSide = debugRollValue - 1;
-            debugRollValue = 0; // Reset after usage
-            rend.sprite = diceSides[randomDiceSide]; // Ensure visual matches
+            debugRollValue = 0;
+            if (dice2DSprite != null) dice2DSprite.sprite = diceSides[randomDiceSide];
         }
 
-        GameControl.diceSideThrown = randomDiceSide + 1;
+        resultSide = randomDiceSide + 1;
+        FinalizeTurn(resultSide);
+    }
+
+    private void FinalizeTurn(int result)
+    {
+        coroutineAllowed = false; // Block until reset
+        GameControl.diceSideThrown = result;
+        
         if (whosTurn == 1)
         {
             GameControl.ShowDirectionOptions(1);
@@ -75,5 +134,10 @@ public class Dice : MonoBehaviour {
     public void SetTurn(int turn)
     {
         whosTurn = turn;
+    }
+
+    public bool IsCoroutineAllowed()
+    {
+        return coroutineAllowed;
     }
 }
