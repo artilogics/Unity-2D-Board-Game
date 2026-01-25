@@ -137,52 +137,6 @@ public class FollowThePath : MonoBehaviour {
 
     private void Move()
     {
-        // Special case: Moving from start position - jump directly to target
-        if (waypointIndex == -1)
-        {
-            // Initialize jump
-            if (moveTimer == 0f)
-            {
-                if (AudioManager.Instance != null)
-                {
-                    AudioManager.Instance.PlayJumpSound();
-                }
-                
-                jumpStartPosition = transform.position;
-            }
-
-            moveTimer += Time.deltaTime;
-            float t = moveTimer / moveDuration;
-
-            if (t >= 1f)
-            {
-                // Jump complete - land on target
-                waypointIndex = targetIndex;
-                transform.position = waypoints[waypointIndex].transform.position;
-                moveTimer = 0f;
-                StartCoroutine(FinalBounce());
-            }
-            else
-            {
-                // Parabolic jump directly to target
-                Vector2 endPosition = waypoints[targetIndex].transform.position;
-                Vector2 linearPos = Vector2.Lerp(jumpStartPosition, endPosition, t);
-                float height = Mathf.Sin(t * Mathf.PI) * jumpHeight;
-                transform.position = new Vector3(linearPos.x, linearPos.y + height, transform.position.z);
-                
-                // Flip sprite
-                if (endPosition.x < jumpStartPosition.x)
-                {
-                    sr.flipX = true;
-                }
-                else
-                {
-                    sr.flipX = false;
-                }
-            }
-            return;
-        }
-
         // Normal movement (step by step through waypoints)
         if (waypointIndex != targetIndex)
         {
