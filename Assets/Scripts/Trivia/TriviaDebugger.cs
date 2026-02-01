@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 // Add this script to any GameObject in your scene to debug trivia system
 public class TriviaDebugger : MonoBehaviour
@@ -59,7 +60,7 @@ public class TriviaDebugger : MonoBehaviour
     void Update()
     {
         // Press T to test popup
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Keyboard.current != null && Keyboard.current[Key.T].wasPressedThisFrame)
         {
             Debug.Log("Testing popup with Science category for Player 1...");
             if (TriviaPopup.Instance != null)
