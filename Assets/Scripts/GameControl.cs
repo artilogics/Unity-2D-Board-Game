@@ -363,16 +363,19 @@ public class GameControl : MonoBehaviour {
         }
         
         // Win condition checks (only if not moving)
-        if (player1 != null && player1.GetComponent<FollowThePath>().waypointIndex == 
-            player1.GetComponent<FollowThePath>().waypoints.Length - 1)
+        // Win condition checks (only if not moving)
+        if (player1 != null && 
+            !player1.GetComponent<FollowThePath>().isCircular &&
+            player1.GetComponent<FollowThePath>().waypointIndex == player1.GetComponent<FollowThePath>().waypoints.Length - 1)
         {
             gameStatusText.gameObject.SetActive(true);
             gameStatusText.GetComponent<Text>().text = "Player 1 Wins";
             gameOver = true;
         }
 
-        if (player2 != null && player2.GetComponent<FollowThePath>().waypointIndex ==
-            player2.GetComponent<FollowThePath>().waypoints.Length - 1)
+        if (player2 != null && 
+            !player2.GetComponent<FollowThePath>().isCircular &&
+            player2.GetComponent<FollowThePath>().waypointIndex == player2.GetComponent<FollowThePath>().waypoints.Length - 1)
         {
             gameStatusText.gameObject.SetActive(true);
             player1MoveText.gameObject.SetActive(false);
