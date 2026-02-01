@@ -89,6 +89,12 @@ public class Dice : MonoBehaviour {
         // We ignore the click on the parent 2D object to prevent double-activation.
         if (use3DPhysics && dice3DObject != null)
         {
+             if (!coroutineAllowed)
+             {
+                 Debug.LogWarning("Dice click blocked (3D)! coroutineAllowed=false");
+                 return;
+             }
+
              Debug.Log("Using 3D physics - activating 3D dice object");
              if (dice3DObject.activeSelf == false) dice3DObject.SetActive(true);
              return; 
