@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Dice : MonoBehaviour {
 
@@ -39,14 +40,14 @@ public class Dice : MonoBehaviour {
 
     private void Update()
     {
-        if (enableDebugInput)
+        if (enableDebugInput && Keyboard.current != null)
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1)) { debugRollValue = 1; Debug.Log("Debug Roll: 1"); }
-            if (Input.GetKeyDown(KeyCode.Alpha2)) { debugRollValue = 2; Debug.Log("Debug Roll: 2"); }
-            if (Input.GetKeyDown(KeyCode.Alpha3)) { debugRollValue = 3; Debug.Log("Debug Roll: 3"); }
-            if (Input.GetKeyDown(KeyCode.Alpha4)) { debugRollValue = 4; Debug.Log("Debug Roll: 4"); }
-            if (Input.GetKeyDown(KeyCode.Alpha5)) { debugRollValue = 5; Debug.Log("Debug Roll: 5"); }
-            if (Input.GetKeyDown(KeyCode.Alpha6)) { debugRollValue = 6; Debug.Log("Debug Roll: 6"); }
+            if (Keyboard.current[Key.Digit1].wasPressedThisFrame) { debugRollValue = 1; Debug.Log("Debug Roll: 1"); }
+            if (Keyboard.current[Key.Digit2].wasPressedThisFrame) { debugRollValue = 2; Debug.Log("Debug Roll: 2"); }
+            if (Keyboard.current[Key.Digit3].wasPressedThisFrame) { debugRollValue = 3; Debug.Log("Debug Roll: 3"); }
+            if (Keyboard.current[Key.Digit4].wasPressedThisFrame) { debugRollValue = 4; Debug.Log("Debug Roll: 4"); }
+            if (Keyboard.current[Key.Digit5].wasPressedThisFrame) { debugRollValue = 5; Debug.Log("Debug Roll: 5"); }
+            if (Keyboard.current[Key.Digit6].wasPressedThisFrame) { debugRollValue = 6; Debug.Log("Debug Roll: 6"); }
         }
     }
 
