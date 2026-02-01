@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 public class Dice : MonoBehaviour {
 
@@ -40,6 +41,7 @@ public class Dice : MonoBehaviour {
 
     private void Update()
     {
+        // Debug input
         if (enableDebugInput && Keyboard.current != null)
         {
             if (Keyboard.current[Key.Digit1].wasPressedThisFrame) { debugRollValue = 1; Debug.Log("Debug Roll: 1"); }
@@ -49,21 +51,57 @@ public class Dice : MonoBehaviour {
             if (Keyboard.current[Key.Digit5].wasPressedThisFrame) { debugRollValue = 5; Debug.Log("Debug Roll: 5"); }
             if (Keyboard.current[Key.Digit6].wasPressedThisFrame) { debugRollValue = 6; Debug.Log("Debug Roll: 6"); }
         }
+
+        // Mouse/Pointer input (works in editor and with mouse on device)
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            Vector2 mousePosition = Mouse.current.position.ReadValue();
+            CheckClickAtPosition(mousePosition, "Mouse");
+        }
+
+        // Mobile touch input
+        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+        {
+            Vector2 touchPosition = Touchscreen.current.primaryTouch.position.ReadValue();
+            CheckClickAtPosition(touchPosition, "Touch");
+        }
     }
 
-    private void OnMouseDown()
+    private void CheckClickAtPosition(Vector2 screenPosition, string inputType)
     {
+        Ray ray = Camera.main.ScreenPointToRay(screenPosition);
+        // Use GetRayIntersection - better for picking 2D objects with camera rays (handles Z-depth correctly)
+        RaycastHit2D hit = Physics2D.GetRayIntersection(ray);
+
+        if (hit.collider != null && hit.collider.gameObject == gameObject)
+        {
+            HandleDiceClick();
+        }
+    }
+
+    private void HandleDiceClick()
+    {
+        Debug.Log("HandleDiceClick() called");
+        Debug.Log($"use3DPhysics: {use3DPhysics}, dice3DObject: {(dice3DObject != null ? "exists" : "null")}");
+        Debug.Log($"GameControl.gameOver: {GameControl.gameOver}, coroutineAllowed: {coroutineAllowed}");
+        
         // If using 3D physics, the 3D object handles the click via Dice3D.
         // We ignore the click on the parent 2D object to prevent double-activation.
         if (use3DPhysics && dice3DObject != null)
         {
+             Debug.Log("Using 3D physics - activating 3D dice object");
              if (dice3DObject.activeSelf == false) dice3DObject.SetActive(true);
              return; 
         }
 
         if (!GameControl.gameOver && coroutineAllowed)
         {
+            Debug.Log("Starting RollTheDice coroutine!");
             StartCoroutine("RollTheDice");
+        }
+        else
+        {
+            Debug.LogWarning($"Dice click blocked! gameOver={GameControl.gameOver}, coroutineAllowed={coroutineAllowed}");
         }
     }
 

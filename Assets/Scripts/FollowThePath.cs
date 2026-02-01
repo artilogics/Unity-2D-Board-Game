@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class FollowThePath : MonoBehaviour {
 
@@ -350,35 +351,5 @@ public class FollowThePath : MonoBehaviour {
         hopping = false;
         moveAllowed = false; // Stop movement state
     }
-    // Interaction Logic
-    private void OnMouseDown()
-    {
-        // Only allow interaction if idle
-        if (!moveAllowed && !isAnimatingJuice && !hopping)
-        {
-            StartCoroutine(InteractionBounce());
-        }
-    }
 
-    private System.Collections.IEnumerator InteractionBounce()
-    {
-        isAnimatingJuice = true;
-        Vector3 groundPos = transform.position;
-        float timer = 0f;
-
-        while (timer < interactionDuration)
-        {
-            timer += Time.deltaTime;
-            float t = timer / interactionDuration;
-
-            // Simple Hop
-            float height = Mathf.Sin(t * Mathf.PI) * interactionBounceHeight;
-            transform.position = new Vector3(groundPos.x, groundPos.y + height, groundPos.z);
-
-            yield return null;
-        }
-
-        transform.position = groundPos;
-        isAnimatingJuice = false;
-    }
 }
