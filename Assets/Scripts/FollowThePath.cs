@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public class FollowThePath : MonoBehaviour {
 
@@ -32,7 +33,7 @@ public class FollowThePath : MonoBehaviour {
 
     public bool moveAllowed = false;
 
-    private Vector2 jumpStartPosition; // Renamed to avoid conflict with circular board startPosition
+    private Vector3 jumpStartPosition; // Renamed to avoid conflict with circular board startPosition
     private float moveTimer;
     private SpriteRenderer sr;
     private Vector3 originalScale; // Store original scale
@@ -50,16 +51,22 @@ public class FollowThePath : MonoBehaviour {
         originalScale = transform.localScale;
         
         // Initialize position
-        if (isCircular && startPosition != null)
+        // Initialize position
+        // Universal Logic: Always try to start at the dedicated StartPosition (Index -1)
+        if (startPosition != null)
         {
-            // Circular board - start at separate start position
             waypointIndex = -1; // Special index meaning "at start"
             transform.position = startPosition.position;
         }
         else
         {
-            // Linear board or circular without startPosition - start at waypoint 0
-            transform.position = waypoints[waypointIndex].transform.position;
+            // Fallback: If no StartPosition assigned, snapping to first waypoint (Index 0)
+            Debug.LogWarning("No StartPosition assigned! Defaulting to Waypoint 0.");
+            waypointIndex = 0;
+            if (waypoints.Length > 0)
+            {
+               transform.position = waypoints[waypointIndex].transform.position;
+            }
         }
 
         // Ensure we have a collider for OnMouseDown
@@ -96,44 +103,59 @@ public class FollowThePath : MonoBehaviour {
     {
         stepDirection = (steps > 0) ? 1 : -1;
         
-        // Check if we're at the start position (waypointIndex = -1 for circular start)
-        bool atStartPosition = (waypointIndex == -1);
-        
-        if (isCircular && atStartPosition)
-        {
-            // First roll from start - map dice value to 0-indexed waypoints
-            // Roll 1 forward → waypoints[0] (1st tile counting forward)
-            // Roll 1 backward → waypoints[31] (1st tile counting backward, assuming 32 waypoints)
-            // Roll 3 forward → waypoints[2] (3rd tile)
-            // Roll 3 backward → waypoints[29] (3rd tile from end)
-            
-            targetIndex = (stepDirection > 0) ? (steps - 1) : (waypoints.Length + steps);
-            
-            // Ensure in bounds
-            while (targetIndex < 0) targetIndex += waypoints.Length;
-            targetIndex = targetIndex % waypoints.Length;
-        }
-        else
-        {
-            // Normal movement from a waypoint
-            targetIndex = waypointIndex + steps;
-            
-            if (isCircular)
-            {
-                // Wrap around for circular boards
-                while (targetIndex < 0) targetIndex += waypoints.Length;
-                targetIndex = targetIndex % waypoints.Length;
-            }
-            else
-            {
-                // Clamp for linear boards
-                if (targetIndex < 0) targetIndex = 0;
-                if (targetIndex >= waypoints.Length) targetIndex = waypoints.Length - 1;
-            }
-        }
+        // Use the centralized target calculator to ensure we go to the exact same place the animation will
+        targetIndex = CalculateTargetIndex(waypointIndex, steps);
         
         Debug.Log($"StartMove: waypointIndex={waypointIndex}, steps={steps}, targetIndex={targetIndex}");
         moveAllowed = true;
+    }
+
+    /// <summary>
+    /// Calculates the final waypoint index given a start index and number of steps.
+    /// Pure index arithmetic. Returns < 0 if destination is invalid (Start or before).
+    /// </summary>
+    public int CalculateTargetIndex(int currentIdx, int steps)
+    {
+        int absSteps = Mathf.Abs(steps);
+        int direction = (steps > 0) ? 1 : -1;
+        int simulatedIdx = currentIdx;
+        int currentSimDir = direction;
+
+        // Special case: Move from Start Position (-1)
+        if (simulatedIdx < 0)
+        {
+            // First step takes us to 0 (if forward) or further back (if backward)
+            simulatedIdx += currentSimDir;
+            absSteps--; 
+        }
+
+        // Simulate remaining steps
+        for (int i = 0; i < absSteps; i++)
+        {
+            simulatedIdx += currentSimDir;
+
+            if (isCircular)
+            {
+                if (simulatedIdx < 0) simulatedIdx = waypoints.Length - 1;
+                else if (simulatedIdx >= waypoints.Length) simulatedIdx = 0;
+            }
+            else
+            {
+                // Linear Simple Win Logic
+                if (simulatedIdx >= waypoints.Length)
+                {
+                    // Overshot the end. Clamp to Last Waypoint.
+                    simulatedIdx = waypoints.Length - 1;
+                    // We assume we don't want to count any further steps (just stop at end)
+                    break; 
+                }
+                
+                // Note: We allow simulatedIdx to go < 0 here. 
+                // This indicates "Back to Start" or "Past Start".
+            }
+        }
+
+        return simulatedIdx;
     }
 
     private void Move()
@@ -155,25 +177,24 @@ public class FollowThePath : MonoBehaviour {
                 // Determine next immediate waypoint based on direction
                 int nextStepIndex = waypointIndex + stepDirection;
                 
-                // Handle circular wrapping
                 if (isCircular)
                 {
                     if (nextStepIndex < 0) nextStepIndex = waypoints.Length - 1;
                     if (nextStepIndex >= waypoints.Length) nextStepIndex = 0;
-                    
-                    // Skip StartWaypoint in circular mode
-                    if (waypoints[nextStepIndex].GetComponent<StartWaypoint>() != null)
-                    {
-                        Debug.Log($"Skipping StartWaypoint at index {nextStepIndex}");
-                        nextStepIndex += stepDirection;
-                        
-                        // Wrap again if needed
-                        if (nextStepIndex < 0) nextStepIndex = waypoints.Length - 1;
-                        if (nextStepIndex >= waypoints.Length) nextStepIndex = 0;
-                    }
+                }
+                else
+                {
+                     // Linear Simple Win Check
+                     if (nextStepIndex >= waypoints.Length)
+                     {
+                         // Hit end or past end. Clamp to last.
+                         nextStepIndex = waypoints.Length - 1;
+                     }
+                     // Use visual clamping for safety
+                     if (nextStepIndex < 0) nextStepIndex = 0;
                 }
                 
-                Vector2 endPos = waypoints[nextStepIndex].transform.position;
+                Vector3 endPos = waypoints[nextStepIndex].transform.position;
                 
                 if (endPos.x < jumpStartPosition.x)
                 {
@@ -198,16 +219,41 @@ public class FollowThePath : MonoBehaviour {
                 {
                     if (waypointIndex < 0) waypointIndex = waypoints.Length - 1;
                     if (waypointIndex >= waypoints.Length) waypointIndex = 0;
+                }
+                else
+                {
+                     // Linear Simple Win Update
+                     if (waypointIndex >= waypoints.Length)
+                     {
+                         waypointIndex = waypoints.Length - 1;
+                     }
+                     if (waypointIndex < 0) waypointIndex = 0;
+                }
+                
+                // Check Skip (Universal)
+                // Note: Logic above already handled skip direction for the next hop, 
+                // but we need to ensure our *current* resting index is valid if we landed on a StartWaypoint
+                // (This creates a multi-hop effect if multiple start waypoints existed, though unlikely)
+                if (waypoints[waypointIndex].GetComponent<StartWaypoint>() != null)
+                {
+                    Debug.Log($"Skipping StartWaypoint at index {waypointIndex}, jumping to next");
+                    waypointIndex += stepDirection;
                     
-                    // Skip StartWaypoint
-                    if (waypoints[waypointIndex].GetComponent<StartWaypoint>() != null)
+                    // Wrap/Clamp again
+                    if (isCircular)
                     {
-                        Debug.Log($"Skipping StartWaypoint at index {waypointIndex}, jumping to next");
-                        waypointIndex += stepDirection;
-                        
-                        // Wrap again if needed
                         if (waypointIndex < 0) waypointIndex = waypoints.Length - 1;
                         if (waypointIndex >= waypoints.Length) waypointIndex = 0;
+                    }
+                    else
+                    {
+                        // Bounce check again for safety (visual only)
+                        if (waypointIndex >= waypoints.Length) 
+                        {
+                            waypointIndex = waypoints.Length - 2;
+                            stepDirection = -1; 
+                        }
+                        if (waypointIndex < 0) waypointIndex = 0;
                     }
                 }
                 
@@ -235,15 +281,21 @@ public class FollowThePath : MonoBehaviour {
                     if (nextStepIndex < 0) nextStepIndex = waypoints.Length - 1;
                     if (nextStepIndex >= waypoints.Length) nextStepIndex = 0;
                 }
+                else
+                {
+                    // Linear clamping for interpolation
+                    if (nextStepIndex >= waypoints.Length) nextStepIndex = waypoints.Length - 1;
+                    if (nextStepIndex < 0) nextStepIndex = 0;
+                }
                 
-                Vector2 endPosition = waypoints[nextStepIndex].transform.position;
+                Vector3 endPosition = waypoints[nextStepIndex].transform.position;
                 
-                Vector2 linearPos = Vector2.Lerp(jumpStartPosition, endPosition, t);
+                Vector3 linearPos = Vector3.Lerp(jumpStartPosition, endPosition, t);
                 
                 // Add jump height (Sine wave 0->1->0)
                 float height = Mathf.Sin(t * Mathf.PI) * jumpHeight;
                 
-                transform.position = new Vector2(linearPos.x, linearPos.y + height);
+                transform.position = new Vector3(linearPos.x, linearPos.y + height, linearPos.z);
             }
         }
     }

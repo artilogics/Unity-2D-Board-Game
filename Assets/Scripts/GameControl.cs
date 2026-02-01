@@ -115,12 +115,12 @@ public class GameControl : MonoBehaviour {
         }
         
         if (forwardButton != null) {
-            forwardButton.GetComponent<Button>().onClick.AddListener(MovePlayerForward);
+            forwardButton.GetComponent<Button>().onClick.AddListener(() => MovePlayerForward());
             forwardButton.SetActive(false);
         }
         
         if (backwardButton != null) {
-            backwardButton.GetComponent<Button>().onClick.AddListener(MovePlayerBackward);
+            backwardButton.GetComponent<Button>().onClick.AddListener(() => MovePlayerBackward());
             backwardButton.SetActive(false);
         }
     }
@@ -169,12 +169,18 @@ public class GameControl : MonoBehaviour {
             return;
         }
 
+        // If markers are active, player is choosing direction. Do not update state.
+        if (activeMarkers.Count > 0)
+        {
+            return;
+        }
+
         // Check if player 1 is moving
-        if (player1.GetComponent<FollowThePath>().moveAllowed)
+        if (player1 != null && player1.GetComponent<FollowThePath>().moveAllowed)
         {
              return;
         }
-        else if (playerToMove == 1 && player1MoveText.gameObject.activeSelf)
+        else if (player1 != null && playerToMove == 1 && player1MoveText.gameObject.activeSelf)
         {
              // Player 1 finished moving. Check for special tile.
              FollowThePath path = player1.GetComponent<FollowThePath>();
@@ -264,11 +270,11 @@ public class GameControl : MonoBehaviour {
         }
         
         // Check if player 2 is moving
-        if (player2.GetComponent<FollowThePath>().moveAllowed)
+        if (player2 != null && player2.GetComponent<FollowThePath>().moveAllowed)
         {
              return;
         }
-        else if (playerToMove == 2 && player2MoveText.gameObject.activeSelf)
+        else if (player2 != null && playerToMove == 2 && player2MoveText.gameObject.activeSelf)
         {
              // Player 2 finished moving. Check for special tile.
              FollowThePath path = player2.GetComponent<FollowThePath>();
@@ -357,7 +363,7 @@ public class GameControl : MonoBehaviour {
         }
         
         // Win condition checks (only if not moving)
-        if (player1.GetComponent<FollowThePath>().waypointIndex == 
+        if (player1 != null && player1.GetComponent<FollowThePath>().waypointIndex == 
             player1.GetComponent<FollowThePath>().waypoints.Length - 1)
         {
             gameStatusText.gameObject.SetActive(true);
@@ -365,7 +371,7 @@ public class GameControl : MonoBehaviour {
             gameOver = true;
         }
 
-        if (player2.GetComponent<FollowThePath>().waypointIndex ==
+        if (player2 != null && player2.GetComponent<FollowThePath>().waypointIndex ==
             player2.GetComponent<FollowThePath>().waypoints.Length - 1)
         {
             gameStatusText.gameObject.SetActive(true);
@@ -377,19 +383,22 @@ public class GameControl : MonoBehaviour {
 
 
         // Manage Visual Overlap
-        FollowThePath p1Path = player1.GetComponent<FollowThePath>();
-        FollowThePath p2Path = player2.GetComponent<FollowThePath>();
-        
-        // Check for same waypoint position
-        if (p1Path.waypointIndex == p2Path.waypointIndex)
+        if (player1 != null && player2 != null)
         {
-            p1Path.isOverlapping = true;
-            p2Path.isOverlapping = true;
-        }
-        else
-        {
-            p1Path.isOverlapping = false;
-            p2Path.isOverlapping = false;
+            FollowThePath p1Path = player1.GetComponent<FollowThePath>();
+            FollowThePath p2Path = player2.GetComponent<FollowThePath>();
+            
+            // Check for same waypoint position
+            if (p1Path.waypointIndex == p2Path.waypointIndex && p1Path.waypointIndex >= 0)
+            {
+                p1Path.isOverlapping = true;
+                p2Path.isOverlapping = true;
+            }
+            else
+            {
+                p1Path.isOverlapping = false;
+                p2Path.isOverlapping = false;
+            }
         }
     }
 
@@ -399,104 +408,140 @@ public class GameControl : MonoBehaviour {
         if (!gameOver) gameStatusText.SetActive(false);
     }
 
+    [Header("Direction Markers")]
+    public GameObject markerPrefab2D; // User defined 2D marker
+    public GameObject markerPrefab3D; // User defined 3D marker
+    public bool use3DMarkers = false; // Toggle for logic
+    public Vector3 markerOffset = new Vector3(0, 1.5f, 0); // Customizable offset
+    public Vector3 markerRotation = new Vector3(0, 0, 180); // Default to pointing down
+
+    private static List<GameObject> activeMarkers = new List<GameObject>();
+
+    private static void ClearMarkers()
+    {
+        foreach (var marker in activeMarkers)
+        {
+            if (marker != null) Destroy(marker);
+        }
+        activeMarkers.Clear();
+    }
+
+    private static void SpawnMarker(Vector3 position, System.Action onClickAction)
+    {
+        GameControl instance = GameObject.FindFirstObjectByType<GameControl>();
+        if (instance == null) return;
+
+        // Use instance offset & rotation
+        Vector3 finalPos = position + instance.markerOffset;
+        Quaternion finalRot = Quaternion.Euler(instance.markerRotation);
+        
+        GameObject prefabToUse = instance.use3DMarkers ? instance.markerPrefab3D : instance.markerPrefab2D;
+        GameObject markerObj;
+
+        if (prefabToUse != null)
+        {
+            // Instantiate user prefab
+            markerObj = Instantiate(prefabToUse, finalPos, finalRot);
+        }
+        else
+        {
+            // FALLBACK SYSTEM
+            Debug.LogWarning("No Marker Prefab assigned! Using fallback arrow.");
+            
+            Sprite arrowSprite = Resources.Load<Sprite>("arrow_marker");
+            if (arrowSprite == null)
+            {
+                Texture2D arrowTex = Resources.Load<Texture2D>("arrow_marker");
+                if (arrowTex != null)
+                    arrowSprite = Sprite.Create(arrowTex, new Rect(0, 0, arrowTex.width, arrowTex.height), new Vector2(0.5f, 0.5f), 100f);
+            }
+            
+            markerObj = new GameObject("DirectionMarker_Fallback");
+            markerObj.transform.position = finalPos;
+            markerObj.transform.rotation = finalRot;
+            
+            SpriteRenderer sr = markerObj.AddComponent<SpriteRenderer>();
+            sr.sprite = arrowSprite;
+            sr.sortingOrder = 10;
+        }
+
+        // Ensure logic exists
+        DirectionMarker dm = markerObj.GetComponent<DirectionMarker>();
+        if (dm == null) dm = markerObj.AddComponent<DirectionMarker>();
+        
+        dm.Setup(onClickAction);
+        
+        // Track it
+        activeMarkers.Add(markerObj);
+    }
+
     public static void ShowDirectionOptions(int player)
     {
         playerToMove = player;
         GameObject activePlayerObj = (player == 1) ? player1 : player2;
         FollowThePath playerPath = activePlayerObj.GetComponent<FollowThePath>();
-        Sprite playerSprite = activePlayerObj.GetComponent<SpriteRenderer>().sprite;
+        
+        // Clear old markers (just in case)
+        ClearMarkers();
 
-        // Calculate potential indices
+        // Calculate indices
         int currentIdx = playerPath.waypointIndex;
         bool isCircular = playerPath.isCircular;
         bool atStartPosition = (currentIdx == -1);
         
-        int forwardIdx, backwardIdx;
-        
-        if (isCircular && atStartPosition)
-        {
-            // At start position - calculate from start
-            forwardIdx = diceSideThrown; // Roll 2 → waypoint 2
-            backwardIdx = playerPath.waypoints.Length + (-diceSideThrown); // Roll 2 → waypoint 30 (if 32 waypoints)
-            
-            // Special case: Roll 1 from start - only one option
-            if (diceSideThrown == 1)
-            {
-                Debug.Log("Rolling 1 from start - auto-moving to waypoint 1");
-                if (forwardButton != null) forwardButton.SetActive(false);
-                if (backwardButton != null) backwardButton.SetActive(false);
-                MovePlayerForward();
-                return;
-            }
-        }
-        else
-        {
-            // Normal calculation
-            forwardIdx = currentIdx + diceSideThrown;
-            backwardIdx = currentIdx - diceSideThrown;
-        }
+        // Calculate indices using the robust method in FollowThePath
+        int forwardIdx = playerPath.CalculateTargetIndex(currentIdx, diceSideThrown);
+        int backwardIdx = playerPath.CalculateTargetIndex(currentIdx, -diceSideThrown);
 
-        // Setup Forward Button
+        // Option A: Forward
         if (isCircular || forwardIdx < playerPath.waypoints.Length)
         {
-            // Wrap for circular
             if (isCircular)
             {
                 while (forwardIdx >= playerPath.waypoints.Length) forwardIdx -= playerPath.waypoints.Length;
+                while (forwardIdx < 0) forwardIdx += playerPath.waypoints.Length;
             }
             
-            if (forwardButton != null && forwardIdx < playerPath.waypoints.Length)
+            // Linear Check: Prevent going backward past 0 (or to -1)
+            // CalculateTargetIndex returns < 0 if invalid on linear
+            bool valid = true;
+            if (!isCircular)
             {
-                SetupSilhouetteButton(forwardButton, playerPath.waypoints[forwardIdx].transform.position, playerSprite);
-                forwardButton.SetActive(true);
+                if (forwardIdx < 0) valid = false;
+            }
+
+            if (valid && forwardIdx < playerPath.waypoints.Length) 
+            {
+                 SpawnMarker(playerPath.waypoints[forwardIdx].transform.position, () => MovePlayerForward(player));
             }
         }
-        else
-        {
-            if (forwardButton != null) forwardButton.SetActive(false);
-        }
 
-        // Setup Backward Button
+        // Option B: Backward
         if (isCircular || backwardIdx >= 0)
         {
-            // Wrap for circular
             if (isCircular)
             {
                 while (backwardIdx < 0) backwardIdx += playerPath.waypoints.Length;
+                 while (backwardIdx >= playerPath.waypoints.Length) backwardIdx -= playerPath.waypoints.Length;
             }
             
-            if (backwardButton != null && backwardIdx >= 0 && backwardIdx < playerPath.waypoints.Length)
+            // Linear Check
+            bool valid = true;
+            if (!isCircular)
             {
-                SetupSilhouetteButton(backwardButton, playerPath.waypoints[backwardIdx].transform.position, playerSprite);
-                backwardButton.SetActive(true);
+                 if (backwardIdx < 0) valid = false;
+            }
+            
+            if (valid && backwardIdx >= 0 && backwardIdx < playerPath.waypoints.Length)
+            {
+                 SpawnMarker(playerPath.waypoints[backwardIdx].transform.position, () => MovePlayerBackward(player));
             }
         }
-        else
-        {
-            if (backwardButton != null) backwardButton.SetActive(false);
-        }
-    }
-
-    private static void SetupSilhouetteButton(GameObject button, Vector3 worldPos, Sprite sprite)
-    {
-        // Position
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
-        screenPos.y += 20; // Slight upward offset
-        button.transform.position = screenPos;
-
-        // Visuals
-        Image btnImage = button.GetComponent<Image>();
-        btnImage.sprite = sprite;
-        btnImage.color = new Color(0, 0, 0, 0.8f); // Darker Silhouette style
-
-        // Hide Text
-        Text btnText = button.GetComponentInChildren<Text>();
-        if (btnText != null) btnText.text = "";
     }
 
     public static void CalculateMove(int direction)
     {
-        // Helper to avoid duplicate code if needed, but keeping existing structure for now.
+        // Deprecated helper
     }
 
     private static List<Transform> currentShortcutOptions;
@@ -506,119 +551,109 @@ public class GameControl : MonoBehaviour {
         playerToMove = player;
         currentShortcutOptions = options;
         
-        GameObject activePlayerObj = (player == 1) ? player1 : player2;
-        Sprite playerSprite = activePlayerObj.GetComponent<SpriteRenderer>().sprite;
-
-        // Button 1 (Left/Back position mostly? Or just reuse Forward/Back)
-        // Let's map Option 0 to ForwardButton (Right side usually) and Option 1 to BackwardButton (Left side)
-        // Or just map based on screen position relative to player? 
-        // For simplicity: Option 0 -> ForwardButton, Option 1 -> BackwardButton (if exists)
-        
-        // Clear previous listeners (Critical!)
-        forwardButton.GetComponent<Button>().onClick.RemoveAllListeners();
-        backwardButton.GetComponent<Button>().onClick.RemoveAllListeners();
+        ClearMarkers();
         
         // Option 0
         if (options.Count > 0)
         {
-            SetupSilhouetteButton(forwardButton, options[0].position, playerSprite);
-            forwardButton.GetComponent<Button>().onClick.AddListener(() => MoveToShortcut(0));
-            forwardButton.SetActive(true);
-        }
-        else
-        {
-            forwardButton.SetActive(false);
+            SpawnMarker(options[0].position, () => MoveToShortcut(0));
         }
 
         // Option 1
         if (options.Count > 1)
         {
-            SetupSilhouetteButton(backwardButton, options[1].position, playerSprite);
-            backwardButton.GetComponent<Button>().onClick.AddListener(() => MoveToShortcut(1));
-            backwardButton.SetActive(true);
-        }
-        else
-        {
-            backwardButton.SetActive(false);
+            SpawnMarker(options[1].position, () => MoveToShortcut(1));
         }
     }
 
     public static void MoveToShortcut(int optionIndex)
     {
-        if (currentShortcutOptions == null || optionIndex >= currentShortcutOptions.Count) return;
+        Debug.Log($"[GameControl] MoveToShortcut called. Index: {optionIndex}, Player: {playerToMove}");
+        if (currentShortcutOptions == null || optionIndex >= currentShortcutOptions.Count) 
+        {
+             Debug.LogError("Shortcut options invalid or index out of range!");
+             return;
+        }
 
+        ClearMarkers(); // Hide arrows
         Transform target = currentShortcutOptions[optionIndex];
         
-        // Hide Buttons
-        forwardButton.SetActive(false);
-        backwardButton.SetActive(false);
+        // Hide Buttons (Legacy)
+        if (forwardButton != null) forwardButton.SetActive(false);
+        if (backwardButton != null) backwardButton.SetActive(false);
         
-        // Restore default listeners for next turn
-        forwardButton.GetComponent<Button>().onClick.RemoveAllListeners();
-        backwardButton.GetComponent<Button>().onClick.RemoveAllListeners();
-        forwardButton.GetComponent<Button>().onClick.AddListener(MovePlayerForward);
-        backwardButton.GetComponent<Button>().onClick.AddListener(MovePlayerBackward);
-
         // Execute Move
         GameObject activePlayer = (playerToMove == 1) ? player1 : player2;
         activePlayer.GetComponent<FollowThePath>().StartHop(target);
         
         // Show Feedback
-        gameStatusText.gameObject.SetActive(true);
-        gameStatusText.GetComponent<Text>().text = "Shortcut!";
-        // We can't start coroutine from static easily without instance reference, 
-        // but existing StartCoroutine calls were inside non-static methods or instance was used?
-        // Ah, GameControl is MonoBehaviour but methods are static. 
-        // The existing code uses `StartCoroutine` which implies `this`.
-        // Wait, `StartCoroutine` is used locally in Update (instance method).
-        // But `MovePlayerForward` is static? It doesn't use `StartCoroutine`.
-        // `StartCoroutine` is only used in Update.
-        // We need a reference to the instance to run Coroutine.
-        // Let's find the instance.
+        if (gameStatusText != null) 
+        {
+            gameStatusText.gameObject.SetActive(true);
+            gameStatusText.GetComponent<Text>().text = "Shortcut!";
+        }
+
         GameControl instance = GameObject.FindFirstObjectByType<GameControl>();
         if (instance != null) instance.StartCoroutine(instance.HideStatusText(1.5f));
 
         // Switch Turn
-        if (playerToMove == 1)
-        {
-            SwitchTurn(2);
-        }
-        else
-        {
-            SwitchTurn(1);
-        }
+        if (playerToMove == 1) SwitchTurn(2);
+        else SwitchTurn(1);
         
         dice.GetComponent<Dice>().ResetDice();
         playerToMove = 0;
     }
 
-    public static void MovePlayerForward()
+    public static void MovePlayerForward(int playerOverride = 0)
     {
+        int p = (playerOverride != 0) ? playerOverride : playerToMove;
+        
+        Debug.Log($"[GameControl] MovePlayerForward called. Player: {p} (Override: {playerOverride}, Static: {playerToMove}), Dice: {diceSideThrown}");
+        
+        ClearMarkers(); // Hide arrows
         if (forwardButton != null) forwardButton.SetActive(false);
         if (backwardButton != null) backwardButton.SetActive(false);
 
-        if (playerToMove == 1)
+        if (p == 1)
         {
-             player1.GetComponent<FollowThePath>().StartMove(diceSideThrown);
+            player1.GetComponent<FollowThePath>().moveAllowed = true;
+            player1.GetComponent<FollowThePath>().StartMove(diceSideThrown);
         }
-        else if (playerToMove == 2)
+        else if (p == 2)
         {
-             player2.GetComponent<FollowThePath>().StartMove(diceSideThrown);
+            player2.GetComponent<FollowThePath>().moveAllowed = true;
+            player2.GetComponent<FollowThePath>().StartMove(diceSideThrown);
         }
+        else
+        {
+            Debug.LogError($"[GameControl] MovePlayerForward failed! Player is 0. (Override: {playerOverride}, Static: {playerToMove})");
+        }
+        
+        // playerToMove = 0; // Reset static <<-- REMOVED: Must persist for Update() to detect turn end
     }
 
-    public static void MovePlayerBackward()
+    public static void MovePlayerBackward(int playerOverride = 0)
     {
+        int p = (playerOverride != 0) ? playerOverride : playerToMove;
+        
+        Debug.Log($"[GameControl] MovePlayerBackward called. Player: {p} (Override: {playerOverride}, Static: {playerToMove}), Dice: {diceSideThrown}");
+        
+        ClearMarkers(); // Hide arrows
         if (forwardButton != null) forwardButton.SetActive(false);
         if (backwardButton != null) backwardButton.SetActive(false);
 
-        if (playerToMove == 1)
+        if (p == 1)
         {
-             player1.GetComponent<FollowThePath>().StartMove(-diceSideThrown);
+            player1.GetComponent<FollowThePath>().moveAllowed = true;
+            player1.GetComponent<FollowThePath>().StartMove(-diceSideThrown);
         }
-        else if (playerToMove == 2)
+        else if (p == 2)
         {
-             player2.GetComponent<FollowThePath>().StartMove(-diceSideThrown);
+            player2.GetComponent<FollowThePath>().moveAllowed = true;
+            player2.GetComponent<FollowThePath>().StartMove(-diceSideThrown);
         }
+        
+        // playerToMove = 0; // Reset <<-- REMOVED: Must persist for Update() to detect turn end
     }
+
 }
