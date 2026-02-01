@@ -1,0 +1,2 @@
+Z:\Git\Unity-2D-Board-Game\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\CMakeLists.txt
+Z:\Git\Unity-2D-Board-Game\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\CMakeLists.txt

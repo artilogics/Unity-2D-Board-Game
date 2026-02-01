@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.InputSystem;
 public class Dice3D : MonoBehaviour {
 
 	static Rigidbody rb;
@@ -42,7 +42,78 @@ public class Dice3D : MonoBehaviour {
         }
     }
 
+    private bool isDragging = false;
+
     void Update() {
+        // Input System - Mouse/Touch press detection (grab dice)
+        bool pressedThisFrame = false;
+        bool releasedThisFrame = false;
+
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            Vector2 mousePos = Mouse.current.position.ReadValue();
+            if (CheckClickOnDice(mousePos))
+            {
+                pressedThisFrame = true;
+            }
+        }
+
+        if (Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame && isDragging)
+        {
+            releasedThisFrame = true;
+        }
+
+        // Touch input
+        if (Touchscreen.current != null)
+        {
+            if (Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+            {
+                if (CheckClickOnDice(Touchscreen.current.primaryTouch.position.ReadValue()))
+                {
+                    pressedThisFrame = true;
+                }
+            }
+            else if (Touchscreen.current.primaryTouch.press.wasReleasedThisFrame && isDragging)
+            {
+                releasedThisFrame = true;
+            }
+        }
+
+        // Handle grab
+        if (pressedThisFrame)
+        {
+            if (parentDice != null && !parentDice.IsCoroutineAllowed()) return;
+            
+            // Grab the dice - move to spawn and freeze it there
+            Debug.Log("Grabbed dice - moving to spawn point");
+            
+            isDragging = true;
+            rb.isKinematic = true; // Freeze it
+            
+            // Move to spawn
+            if (spawnPoint != null) transform.position = spawnPoint.position;
+            else transform.position = new Vector3 (0, 2, 0);
+            
+            transform.rotation = Random.rotation; // Random rotation!
+            
+            // Re-enable walls NOW (while frozen, safe)
+            EnableWalls();
+            
+            // Reset state
+            isRetrying = false;
+        }
+
+        // Handle release (throw)
+        if (releasedThisFrame)
+        {
+            if (parentDice != null && !parentDice.IsCoroutineAllowed()) return;
+            
+            // Throw the dice
+            Debug.Log("Released dice - throwing!");
+            isDragging = false;
+            RollDice();
+        }
+
         // Only check for stuck AFTER dice has had time to roll (not immediately after throw)
         float timeSinceRoll = Time.time - rollStartTime;
         
@@ -78,36 +149,18 @@ public class Dice3D : MonoBehaviour {
         }
     }
 
-    private void OnMouseDown()
+    private bool CheckClickOnDice(Vector2 screenPosition)
     {
-        if (parentDice != null && !parentDice.IsCoroutineAllowed()) return;
+        Ray ray = Camera.main.ScreenPointToRay(screenPosition);
+        RaycastHit hit;
         
-        // Grab the dice - move to spawn and freeze it there
-        Debug.Log("Grabbed dice - moving to spawn point");
-        
-        rb.isKinematic = true; // Freeze it
-        
-        // Move to spawn
-        if (spawnPoint != null) transform.position = spawnPoint.position;
-        else transform.position = new Vector3 (0, 2, 0);
-        
-        transform.rotation = Random.rotation; // Random rotation!
-        
-        // Re-enable walls NOW (while frozen, safe)
-        EnableWalls();
-        
-        // Reset state
-        isRetrying = false;
+        if (Physics.Raycast(ray, out hit))
+        {
+            return hit.collider != null && hit.collider.gameObject == gameObject;
+        }
+        return false;
     }
-    
-    private void OnMouseUp()
-    {
-        if (parentDice != null && !parentDice.IsCoroutineAllowed()) return;
-        
-        // Throw the dice
-        Debug.Log("Released dice - throwing!");
-        RollDice();
-    }
+
 
     [Header("Toss Settings")]
     public Transform spawnPoint; 
