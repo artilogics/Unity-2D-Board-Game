@@ -61,9 +61,9 @@ public class FollowThePath : MonoBehaviour {
         else
         {
             // Fallback: If no StartPosition assigned, snapping to first waypoint (Index 0)
-            Debug.LogWarning("No StartPosition assigned! Defaulting to Waypoint 0.");
+            // Debug.Log("[FollowThePath] Using Waypoint 0 as Start Position.");
             waypointIndex = 0;
-            if (waypoints.Length > 0)
+            if (waypoints != null && waypoints.Length > 0)
             {
                transform.position = waypoints[waypointIndex].transform.position;
             }
@@ -86,6 +86,11 @@ public class FollowThePath : MonoBehaviour {
         // Apply Offset Logic when Idle
         if (!moveAllowed && !hopping && !isAnimatingJuice && waypointIndex >= 0)
         {
+            if (waypoints == null || waypoints.Length == 0) return; // Wait for init
+
+            // Safety check for index
+            if (waypointIndex >= waypoints.Length) return;
+
             Vector3 targetPos = waypoints[waypointIndex].transform.position;
             if (isOverlapping)
             {

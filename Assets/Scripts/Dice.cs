@@ -15,7 +15,7 @@ public class Dice : MonoBehaviour {
     public bool use3DPhysics = true;
     public bool enableDebugInput = true;
 
-    private int whosTurn = 1;
+    private int currentPlayerIndex = 0;
     private bool coroutineAllowed = true;
     public static int debugRollValue = 0;
 
@@ -161,14 +161,8 @@ public class Dice : MonoBehaviour {
         coroutineAllowed = false; // Block until reset
         GameControl.diceSideThrown = result;
         
-        if (whosTurn == 1)
-        {
-            GameControl.ShowDirectionOptions(1);
-        } else if (whosTurn == -1)
-        {
-            GameControl.ShowDirectionOptions(2);
-        }
-        whosTurn *= -1;
+        // Use current index
+        GameControl.ShowDirectionOptions(currentPlayerIndex);
     }
 
     public void ResetDice()
@@ -176,9 +170,9 @@ public class Dice : MonoBehaviour {
         coroutineAllowed = true;
     }
 
-    public void SetTurn(int turn)
+    public void SetTurn(int playerIndex)
     {
-        whosTurn = turn;
+        currentPlayerIndex = playerIndex;
     }
 
     public bool IsCoroutineAllowed()
