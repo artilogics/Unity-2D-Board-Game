@@ -191,12 +191,13 @@ MonoBehaviour:
   bounceDuration: 0.5
   moveDuration: 0.5
   jumpHeight: 2
-  playerOffset: {x: 0.4, y: 0.5}
+  playerOffset: {x: 0, y: 0, z: 0}
   isOverlapping: 0
   isCircular: 0
   startPosition: {fileID: 0}
   interactionBounceHeight: 0.5
   interactionDuration: 0.4
+  moveSpeed: 1
   waypointIndex: 0
   moveAllowed: 0
 --- !u!114 &7974017882089808789

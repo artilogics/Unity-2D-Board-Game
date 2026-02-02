@@ -76,8 +76,11 @@ public class GameControl : MonoBehaviour {
             }
             
             // Offset for visibility
-            // Simple offset based on ID to avoid perfect overlap at start
-            path.playerOffset = new Vector2(i * 0.2f, 0); 
+            // Centered offset logic: (i - (Total-1)/2) * spacing
+            // Using Diagonal offset (X and Z) as requested
+            float spacing = 0.6f;
+            float centerOffset = (i - (configs.Count - 1) / 2.0f) * spacing;
+            path.playerOffset = new Vector3(centerOffset, 0, centerOffset); 
 
             players.Add(newPlayer);
             
@@ -401,7 +404,7 @@ public class GameControl : MonoBehaviour {
                  FollowThePath p1 = players[i].GetComponent<FollowThePath>();
                  FollowThePath p2 = players[j].GetComponent<FollowThePath>();
                  
-                 if (p1.waypointIndex == p2.waypointIndex && p1.waypointIndex >= 0)
+                 if (p1.waypointIndex == p2.waypointIndex)
                  {
                      p1.isOverlapping = true;
                      p2.isOverlapping = true;

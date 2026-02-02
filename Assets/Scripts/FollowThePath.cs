@@ -17,7 +17,7 @@ public class FollowThePath : MonoBehaviour {
     public float jumpHeight = 2.0f;
 
     [Header("Visual Settings")]
-    public Vector2 playerOffset;
+    public Vector3 playerOffset;
     public bool isOverlapping = false;
 
     [Header("Board Type")]
@@ -27,6 +27,9 @@ public class FollowThePath : MonoBehaviour {
     [Header("Interaction Settings")]
     public float interactionBounceHeight = 0.5f;
     public float interactionDuration = 0.4f;
+
+    // Movement
+    public float moveSpeed = 1f;
 
     [HideInInspector]
     public int waypointIndex = 0;
@@ -84,22 +87,32 @@ public class FollowThePath : MonoBehaviour {
         }
         
         // Apply Offset Logic when Idle
-        if (!moveAllowed && !hopping && !isAnimatingJuice && waypointIndex >= 0)
+        if (!moveAllowed && !hopping && !isAnimatingJuice)
         {
-            if (waypoints == null || waypoints.Length == 0) return; // Wait for init
+            Vector3 targetPos = Vector3.zero;
 
-            // Safety check for index
-            if (waypointIndex >= waypoints.Length) return;
+            if (waypointIndex == -1 && startPosition != null)
+            {
+                targetPos = startPosition.position;
+            }
+            else if (waypointIndex >= 0)
+            {
+                if (waypoints == null || waypoints.Length == 0) return; 
+                // Safety check for index
+                if (waypointIndex >= waypoints.Length) return;
+                targetPos = waypoints[waypointIndex].transform.position;
+            }
+            else
+            {
+                return; // Invalid state
+            }
 
-            Vector3 targetPos = waypoints[waypointIndex].transform.position;
             if (isOverlapping)
             {
                 targetPos += (Vector3)playerOffset;
             }
             
-            // Smoothly move to target or snap? 
-            // Snapping ensures they don't drift weirdly, but Lerp is nicer.
-            // Let's simple MoveTowards for now to fix small drifts
+            // Smoothly move to target
             transform.position = Vector3.MoveTowards(transform.position, targetPos, 5f * Time.deltaTime);
         }
     }
