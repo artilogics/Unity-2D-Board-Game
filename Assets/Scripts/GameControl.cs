@@ -76,11 +76,20 @@ public class GameControl : MonoBehaviour {
             }
             
             // Offset for visibility
-            // Centered offset logic: (i - (Total-1)/2) * spacing
-            // Using Diagonal offset (X and Z) as requested
-            float spacing = 0.6f;
-            float centerOffset = (i - (configs.Count - 1) / 2.0f) * spacing;
-            path.playerOffset = new Vector3(centerOffset, 0, centerOffset); 
+            // Star Pattern (Quincunx) as requested
+            // 0: Center, 1: BL, 2: BR, 3: TL, 4: TR
+            float spacing = 0.5f; 
+            Vector3 offset = Vector3.zero;
+            
+            switch (i % 5) // Modulo to handle >5 reasonably
+            {
+                case 0: offset = Vector3.zero; break;
+                case 1: offset = new Vector3(-spacing, 0, -spacing); break; // Bottom-Left
+                case 2: offset = new Vector3(spacing, 0, -spacing); break;  // Bottom-Right
+                case 3: offset = new Vector3(-spacing, 0, spacing); break;  // Top-Left
+                case 4: offset = new Vector3(spacing, 0, spacing); break;   // Top-Right
+            }
+            path.playerOffset = offset; 
 
             players.Add(newPlayer);
             
