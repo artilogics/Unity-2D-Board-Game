@@ -269,13 +269,14 @@ public class SetupUICreator : EditorWindow
         rt.sizeDelta = new Vector2(0, 160); // Height 160 for sockets
         rt.anchoredPosition = new Vector2(0, 0); // Bottom
 
-        // Layout Group for Even Distribution
+        // Layout Group for Even Distribution (Fixed Size, Centered)
         HorizontalLayoutGroup hlg = hudPanel.AddComponent<HorizontalLayoutGroup>();
         hlg.padding = new RectOffset(10, 10, 10, 10);
-        hlg.spacing = 10;
+        hlg.spacing = 15;
+        hlg.childAlignment = TextAnchor.MiddleCenter;
         hlg.childControlWidth = true;
         hlg.childControlHeight = true;
-        hlg.childForceExpandWidth = true;
+        hlg.childForceExpandWidth = false; // Don't stretch
         hlg.childForceExpandHeight = true;
 
         // Script
@@ -296,6 +297,11 @@ public class SetupUICreator : EditorWindow
             GameObject pPanel = new GameObject($"PlayerPanel_{i+1}");
             pPanel.transform.SetParent(hudPanel.transform, false);
             
+            // Fixed Size for Panel
+            LayoutElement pLe = pPanel.AddComponent<LayoutElement>();
+            pLe.preferredWidth = 240; // Fixed width per player
+            pLe.minWidth = 200;
+
             // Background & Script
             Image pBg = pPanel.AddComponent<Image>();
             pBg.color = new Color(1, 1, 1, 0.1f);
