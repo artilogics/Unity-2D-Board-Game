@@ -3,27 +3,63 @@ using UnityEngine.UI;
 
 public class TurnIndicatorUI : MonoBehaviour
 {
-    [Header("UI References")]
-    public Image playerPortrait;
-    public Text playerNameText;
+    [Header("Player Panels")]
+    public System.Collections.Generic.List<PlayerHUDPanel> playerPanels; // Assign 5 panels in Inspector
     
-    // Optional: Animation or extra flair
+    [Header("Shared")]
+    public Text turnStatusText;
     
-    public void UpdateTurn(string playerName, Sprite playerSprite)
+    [Header("Category Colors")]
+    public Color defaultSocketColor = Color.gray;
+    // Simple mapping for now
+    
+    public void UpdateHUD(int activePlayerIndex, System.Collections.Generic.List<GameObject> players)
     {
-        if (playerNameText) playerNameText.text = $"{playerName}'s Turn";
-        
-        if (playerPortrait)
-        {
-            if (playerSprite != null)
-            {
-                playerPortrait.sprite = playerSprite;
-                playerPortrait.enabled = true;
-            }
-            else
-            {
-                playerPortrait.enabled = false;
-            }
-        }
+         if (PlayerProgress.Instance == null) { Debug.LogError("TurnIndicatorUI: No PlayerProgress!"); return; }
+         // Debug.Log($"TurnIndicatorUI: Updating for {players.Count} players. Active: {activePlayerIndex}");
+         
+         // Loop through all available panels
+         for (int i = 0; i < playerPanels.Count; i++)
+         {
+             if (i < players.Count)
+             {
+                 // Active Player Logic
+                 playerPanels[i].gameObject.SetActive(true);
+                 
+                 GameObject p = players[i];
+                 string pName = p.name;
+                 
+                 Sprite pSprite = null;
+                 SpriteRenderer sr = p.GetComponentInChildren<SpriteRenderer>();
+                 if (sr) pSprite = sr.sprite;
+                 
+                 // 1-based index for PlayerProgress
+                 int pNum = i + 1;
+                 int score = PlayerProgress.Instance.GetPoints(pNum);
+                 var cats = PlayerProgress.Instance.GetCompletedCategories(pNum);
+                 
+                 playerPanels[i].SetInfo(pName, pSprite, score);
+                 playerPanels[i].SetActive(i == activePlayerIndex);
+                 
+                 // Pass simple coloring for now (Cyan) until we map categories properly
+                 playerPanels[i].UpdateSockets(cats);
+             }
+             else
+             {
+                 // Disable unused panels
+                 playerPanels[i].gameObject.SetActive(false);
+             }
+         }
+         
+         if (turnStatusText && activePlayerIndex < players.Count)
+         {
+             turnStatusText.text = $"{players[activePlayerIndex].name}'s Turn";
+         }
     }
+    
+    // Deprecated
+    public void UpdateTurn(string n, Sprite s) {}
+    public void UpdateHUD(int a, string n1, Sprite s1, string n2, Sprite s2) {} // Legacy override
+    
+
 }

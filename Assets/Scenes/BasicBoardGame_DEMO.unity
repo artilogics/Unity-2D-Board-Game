@@ -905,6 +905,37 @@ MonoBehaviour:
   effect: 3
   possibleDestinations: []
   questionCategory: 7
+--- !u!1 &336699064
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 336699065}
+  m_Layer: 0
+  m_Name: --------------
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &336699065
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336699064}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1811.954, y: 868.9057, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &402922198
 GameObject:
   m_ObjectHideFlags: 0
@@ -2532,6 +2563,8 @@ MonoBehaviour:
   playerPrefab: {fileID: 2296214037659529183, guid: 99fb3703581036c4abd5a7e0a22e53fa, type: 3}
   startPoint: {fileID: 1231855721}
   mapReference: {fileID: 890569564}
+  use3DCharacters: 0
+  charModels: []
   statusText: {fileID: 2087196199}
   turnIndicator: {fileID: 1741761823}
   markerPrefab2D: {fileID: 1309554931215793182, guid: 874effb2b865c6c4da7f3207d1bee09c, type: 3}
@@ -2679,6 +2712,7 @@ MonoBehaviour:
   isOverlapping: 0
   isCircular: 0
   startPosition: {fileID: 1231855721}
+  modelRotationOffset: {x: 0, y: 0, z: 0}
   interactionBounceHeight: 0.5
   interactionDuration: 0.4
   moveSpeed: 1
@@ -2955,9 +2989,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4585161f936455543a59e86a98597a5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpecialTile
-  effect: 2
-  possibleDestinations:
-  - {fileID: 241580482}
+  effect: 0
+  possibleDestinations: []
   questionCategory: 7
 --- !u!1 &938495953
 GameObject:
@@ -7107,10 +7140,11 @@ SceneRoots:
   - {fileID: 874268003}
   - {fileID: 1941728833}
   - {fileID: 84645353}
-  - {fileID: 634117091}
   - {fileID: 959537444}
   - {fileID: 519420032}
+  - {fileID: 634117091}
   - {fileID: 794073829}
+  - {fileID: 336699065}
   - {fileID: 1296529437}
   - {fileID: 766506598}
   - {fileID: 1626740611}

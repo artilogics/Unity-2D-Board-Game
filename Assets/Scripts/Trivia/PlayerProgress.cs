@@ -5,13 +5,13 @@ public class PlayerProgress : MonoBehaviour
 {
     public static PlayerProgress Instance { get; private set; }
 
-    [Header("Player 1")]
-    public int player1Points = 0;
-    public HashSet<string> player1CompletedCategories = new HashSet<string>();
+    private Dictionary<int, PlayerData> playersData = new Dictionary<int, PlayerData>();
 
-    [Header("Player 2")]
-    public int player2Points = 0;
-    public HashSet<string> player2CompletedCategories = new HashSet<string>();
+    public class PlayerData
+    {
+        public int points = 0;
+        public HashSet<string> completedCategories = new HashSet<string>();
+    }
 
     [Header("Settings")]
     public int pointsForCorrect = 10;
@@ -31,48 +31,42 @@ public class PlayerProgress : MonoBehaviour
         }
     }
 
+    // Helper to get or create data
+    private PlayerData GetData(int playerNumber)
+    {
+        if (!playersData.ContainsKey(playerNumber))
+        {
+            playersData[playerNumber] = new PlayerData();
+        }
+        return playersData[playerNumber];
+    }
+
     // Add points for a player
     public void AddPoints(int playerNumber, int points)
     {
-        if (playerNumber == 1)
-        {
-            player1Points += points;
-            player1Points = Mathf.Max(0, player1Points); // Don't go negative
-            Debug.Log($"Player 1 points: {player1Points}");
-        }
-        else if (playerNumber == 2)
-        {
-            player2Points += points;
-            player2Points = Mathf.Max(0, player2Points);
-            Debug.Log($"Player 2 points: {player2Points}");
-        }
+        PlayerData data = GetData(playerNumber);
+        data.points += points;
+        data.points = Mathf.Max(0, data.points); // Don't go negative
+        Debug.Log($"Player {playerNumber} points: {data.points}");
     }
 
     // Mark a category as completed for a player
     public void CompleteCategory(int playerNumber, string category)
     {
-        if (playerNumber == 1)
+        PlayerData data = GetData(playerNumber);
+        if (!data.completedCategories.Contains(category))
         {
-            player1CompletedCategories.Add(category);
-            Debug.Log($"Player 1 completed category: {category} ({player1CompletedCategories.Count}/{categoriesToWin})");
-        }
-        else if (playerNumber == 2)
-        {
-            player2CompletedCategories.Add(category);
-            Debug.Log($"Player 2 completed category: {category} ({player2CompletedCategories.Count}/{categoriesToWin})");
+            data.completedCategories.Add(category);
+            Debug.Log($"Player {playerNumber} completed category: {category} ({data.completedCategories.Count}/{categoriesToWin})");
         }
     }
 
     // Check if player has completed a category
     public bool HasCompletedCategory(int playerNumber, string category)
     {
-        if (playerNumber == 1)
+        if (playersData.ContainsKey(playerNumber))
         {
-            return player1CompletedCategories.Contains(category);
-        }
-        else if (playerNumber == 2)
-        {
-            return player2CompletedCategories.Contains(category);
+            return playersData[playerNumber].completedCategories.Contains(category);
         }
         return false;
     }
@@ -80,13 +74,9 @@ public class PlayerProgress : MonoBehaviour
     // Check if player is ready for final round
     public bool IsReadyForFinal(int playerNumber)
     {
-        if (playerNumber == 1)
+        if (playersData.ContainsKey(playerNumber))
         {
-            return player1CompletedCategories.Count >= categoriesToWin;
-        }
-        else if (playerNumber == 2)
-        {
-            return player2CompletedCategories.Count >= categoriesToWin;
+            return playersData[playerNumber].completedCategories.Count >= categoriesToWin;
         }
         return false;
     }
@@ -94,37 +84,34 @@ public class PlayerProgress : MonoBehaviour
     // Get current points for a player
     public int GetPoints(int playerNumber)
     {
-        return playerNumber == 1 ? player1Points : player2Points;
+        return playersData.ContainsKey(playerNumber) ? playersData[playerNumber].points : 0;
     }
 
     // Get completed category count
     public int GetCompletedCategoryCount(int playerNumber)
     {
-        return playerNumber == 1 ? player1CompletedCategories.Count : player2CompletedCategories.Count;
+        return playersData.ContainsKey(playerNumber) ? playersData[playerNumber].completedCategories.Count : 0;
+    }
+    
+    // Get actual Set of categories (for UI Sockets)
+    public HashSet<string> GetCompletedCategories(int playerNumber)
+    {
+        return playersData.ContainsKey(playerNumber) ? playersData[playerNumber].completedCategories : new HashSet<string>();
     }
 
     // Reset all progress
     public void ResetProgress()
     {
-        player1Points = 0;
-        player2Points = 0;
-        player1CompletedCategories.Clear();
-        player2CompletedCategories.Clear();
+        playersData.Clear();
         Debug.Log("PlayerProgress: All progress reset");
     }
 
     // Reset specific player
     public void ResetPlayer(int playerNumber)
     {
-        if (playerNumber == 1)
+        if (playersData.ContainsKey(playerNumber))
         {
-            player1Points = 0;
-            player1CompletedCategories.Clear();
-        }
-        else if (playerNumber == 2)
-        {
-            player2Points = 0;
-            player2CompletedCategories.Clear();
+            playersData[playerNumber] = new PlayerData();
         }
         Debug.Log($"PlayerProgress: Player {playerNumber} reset");
     }

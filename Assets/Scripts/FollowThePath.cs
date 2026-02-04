@@ -24,6 +24,9 @@ public class FollowThePath : MonoBehaviour {
     public bool isCircular = false; // Enable for circular boards (trivia mode)
     public Transform startPosition; // For circular boards - separate from waypoints array
 
+    [Header("3D Settings")]
+    public Vector3 modelRotationOffset = Vector3.zero; // Additional rotation if needed
+
     [Header("Interaction Settings")]
     public float interactionBounceHeight = 0.5f;
     public float interactionDuration = 0.4f;
@@ -49,11 +52,19 @@ public class FollowThePath : MonoBehaviour {
     private bool isAnimatingJuice = false; // Flag to block movement during juice
 
     // Use this for initialization
+    private void Awake()
+    {
+        // Ensure we have a collider for OnMouseDown (moved from Start to prevent race conditions)
+        if (GetComponent<Collider2D>() == null)
+        {
+            gameObject.AddComponent<BoxCollider2D>();
+        }
+    }
+
     private void Start () {
         sr = GetComponent<SpriteRenderer>();
         originalScale = transform.localScale;
         
-        // Initialize position
         // Initialize position
         // Universal Logic: Always try to start at the dedicated StartPosition (Index -1)
         if (startPosition != null)
@@ -64,18 +75,12 @@ public class FollowThePath : MonoBehaviour {
         else
         {
             // Fallback: If no StartPosition assigned, snapping to first waypoint (Index 0)
-            // Debug.Log("[FollowThePath] Using Waypoint 0 as Start Position.");
             waypointIndex = 0;
             if (waypoints != null && waypoints.Length > 0)
             {
-               transform.position = waypoints[waypointIndex].transform.position;
+               if (waypoints[waypointIndex] != null)
+                   transform.position = waypoints[waypointIndex].position;
             }
-        }
-
-        // Ensure we have a collider for OnMouseDown
-        if (GetComponent<Collider2D>() == null)
-        {
-            gameObject.AddComponent<BoxCollider2D>();
         }
     }
     
@@ -100,7 +105,9 @@ public class FollowThePath : MonoBehaviour {
                 if (waypoints == null || waypoints.Length == 0) return; 
                 // Safety check for index
                 if (waypointIndex >= waypoints.Length) return;
-                targetPos = waypoints[waypointIndex].transform.position;
+                
+                if (waypoints[waypointIndex] == null) return; // Handle missing waypoint
+                targetPos = waypoints[waypointIndex].position;
             }
             else
             {
@@ -216,11 +223,15 @@ public class FollowThePath : MonoBehaviour {
                 
                 if (endPos.x < jumpStartPosition.x)
                 {
-                    sr.flipX = true;
+                    // Moving Left
+                    if (sr && sr.enabled) sr.flipX = true;
+                    else transform.rotation = Quaternion.Euler(0, -90, 0) * Quaternion.Euler(modelRotationOffset);
                 }
                 else
                 {
-                    sr.flipX = false;
+                    // Moving Right
+                    if (sr && sr.enabled) sr.flipX = false;
+                    else transform.rotation = Quaternion.Euler(0, 90, 0) * Quaternion.Euler(modelRotationOffset);
                 }
             }
 
@@ -335,10 +346,11 @@ public class FollowThePath : MonoBehaviour {
             float scaleFactor = Mathf.Sin(t * Mathf.PI); 
             
             // Lerp between original and wobbleScale based on scaleFactor
+            // Universal S&S: Apply X-stretch to Z as well for 3D support (Volume preservation)
             Vector3 targetScale = new Vector3(
                 Mathf.Lerp(originalScale.x, originalScale.x * wobbleScale.x, scaleFactor),
                 Mathf.Lerp(originalScale.y, originalScale.y * wobbleScale.y, scaleFactor),
-                originalScale.z
+                Mathf.Lerp(originalScale.z, originalScale.z * wobbleScale.x, scaleFactor)
             );
             
             transform.localScale = targetScale;

@@ -12,6 +12,17 @@ public class GameControl : MonoBehaviour {
     public Transform startPoint; // Where to spawn
     public FollowThePath mapReference; // To copy waypoints from
     
+    [Header("3D Settings")]
+    public bool use3DCharacters = false;
+    public List<CharacterTo3D> charModels; 
+
+    [System.Serializable]
+    public struct CharacterTo3D
+    {
+        public Sprite sprite;
+        public GameObject prefab3D;
+    }
+
     [Header("UI References")]
     public Text statusText;
     public TurnIndicatorUI turnIndicator; // New Reference
@@ -62,8 +73,45 @@ public class GameControl : MonoBehaviour {
             newPlayer.name = cfg.PlayerName;
             
             // Setup Visuals
-            SpriteRenderer sr = newPlayer.GetComponent<SpriteRenderer>();
+            // Look in children because the visual might be on a child object in the prefab
+            SpriteRenderer sr = newPlayer.GetComponentInChildren<SpriteRenderer>(); 
+            if (!sr) sr = newPlayer.AddComponent<SpriteRenderer>();
+            
+            // Assign Sprite
             if (sr) sr.sprite = cfg.CharacterSprite;
+
+            if (use3DCharacters)
+            {
+                // Disable Sprite Renderer
+                if (sr) sr.enabled = false;
+                
+                // Find and Spawn 3D Model
+                GameObject modelPrefab = null;
+                foreach(var mapping in charModels)
+                {
+                    if (mapping.sprite == cfg.CharacterSprite)
+                    {
+                        modelPrefab = mapping.prefab3D;
+                        break;
+                    }
+                }
+                
+                if (modelPrefab)
+                {
+                    GameObject model = Instantiate(modelPrefab, newPlayer.transform);
+                    model.transform.localPosition = Vector3.zero;
+                    model.transform.localRotation = Quaternion.identity;
+                }
+                else
+                {
+                    Debug.LogWarning($"[GameControl] No 3D model found for sprite: {cfg.CharacterSprite?.name}. Defaulting to Sprite.");
+                    if (sr) sr.enabled = true; // Fallback
+                }
+            }
+            else
+            {
+                // Standard 2D - Sprite loaded above
+            }
             
             // Setup Path
             FollowThePath path = newPlayer.GetComponent<FollowThePath>();
@@ -116,21 +164,15 @@ public class GameControl : MonoBehaviour {
     {
         if (Instance == null) return;
         
-        if (Instance.turnIndicator && players.Count > currentPlayerIndex)
+        if (Instance.turnIndicator && players.Count > 0)
         {
              // Ensure it's visible
              if (!Instance.turnIndicator.gameObject.activeSelf) 
                  Instance.turnIndicator.gameObject.SetActive(true);
 
-             GameObject p = players[currentPlayerIndex];
-             if (p)
-             {
-                 Sprite s = p.GetComponent<SpriteRenderer>().sprite;
-                 Instance.turnIndicator.UpdateTurn(p.name, s);
-             }
+             // Pass the full players list to the HUD
+             Instance.turnIndicator.UpdateHUD(currentPlayerIndex, players);
         }
-        
-        // Status Text is shared
     }
 
     public static void ReportTurnEnd()
@@ -200,6 +242,27 @@ public class GameControl : MonoBehaviour {
                      ShowStatus("Choose Path", 1f);
                      ShowShortcutOptions(currentPlayerIndex, tile.possibleDestinations);
                      return; // Wait for input
+                 }
+            }
+            else if (tile.effect == SpecialTile.TileEffect.QuestionTile)
+            {
+                 // Trivia System Integration
+                 if (TriviaPopup.Instance != null)
+                 {
+                     string category = tile.GetCategoryString();
+                     // Pause turn, show popup
+                     TriviaPopup.Instance.ShowQuestion(category, currentPlayerIndex + 1, (correct) => {
+                         // Callback when popup closes
+                         // Logic: Reward/Penalty is handled by Popup -> PlayerProgress
+                         // We just proceed
+                         SwitchTurn();
+                         dice.GetComponent<Dice>().ResetDice();
+                     });
+                     return; // Wait for callback
+                 }
+                 else
+                 {
+                     Debug.LogError("TriviaPopup Instance provided is null! Proceeding normally.");
                  }
             }
         }

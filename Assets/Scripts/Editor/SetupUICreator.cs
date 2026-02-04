@@ -166,10 +166,6 @@ public class SetupUICreator : EditorWindow
         Button btn = btnObj.AddComponent<Button>();
         
         // Add Listener
-        // We need a persistent listener for an int argument, which is tricky in Editor scripts sometimes.
-        // We'll wrap it in a simple helper script if needed, or rely on the user to check checks.
-        // Actually, let's create a lambda wrapper component? No, that's messy.
-        // Let's attach a small script to the button that talks to the manager.
         CharSelectButton csb = btnObj.AddComponent<CharSelectButton>();
         csb.index = index;
         csb.manager = manager;
@@ -258,36 +254,34 @@ public class SetupUICreator : EditorWindow
 
     private void CreateTurnIndicatorPanel(Transform parent)
     {
-        // Setup a movable panel
-        GameObject turnPanel = new GameObject("TurnIndicatorPanel");
-        turnPanel.transform.SetParent(parent, false);
-        
-        // Background (optional)
-        Image bg = turnPanel.AddComponent<Image>();
-        bg.color = new Color(0,0,0, 0.5f);
-        
-        RectTransform rt = turnPanel.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(250, 80);
-        rt.anchoredPosition = new Vector2(0, 200); // Near dice?
-        
-        // Content
-        GameObject faceObj = new GameObject("Portrait");
-        faceObj.transform.SetParent(turnPanel.transform, false);
-        Image faceImg = faceObj.AddComponent<Image>();
-        RectTransform faceRT = faceObj.GetComponent<RectTransform>();
-        faceRT.sizeDelta = new Vector2(60, 60);
-        faceRT.anchoredPosition = new Vector2(-80, 0);
-        
-        GameObject textObj = CreateText("NameText", "Player 1's Turn", turnPanel.transform, new Vector2(40, 0), 20);
-        Text nameText = textObj.GetComponent<Text>();
-        nameText.alignment = TextAnchor.MiddleLeft;
-        textObj.GetComponent<RectTransform>().sizeDelta = new Vector2(160, 60);
-        
+        // Setup a HUD Panel (Bottom Banner)
+        GameObject hudPanel = new GameObject("HUD_Panel");
+        hudPanel.transform.SetParent(parent, false);
+
+        // Background
+        Image bg = hudPanel.AddComponent<Image>();
+        bg.color = new Color(0, 0, 0, 0.8f);
+
+        RectTransform rt = hudPanel.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0, 0);
+        rt.anchorMax = new Vector2(1, 0);
+        rt.pivot = new Vector2(0.5f, 0);
+        rt.sizeDelta = new Vector2(0, 160); // Height 160 for sockets
+        rt.anchoredPosition = new Vector2(0, 0); // Bottom
+
+        // Layout Group for Even Distribution
+        HorizontalLayoutGroup hlg = hudPanel.AddComponent<HorizontalLayoutGroup>();
+        hlg.padding = new RectOffset(10, 10, 10, 10);
+        hlg.spacing = 10;
+        hlg.childControlWidth = true;
+        hlg.childControlHeight = true;
+        hlg.childForceExpandWidth = true;
+        hlg.childForceExpandHeight = true;
+
         // Script
-        TurnIndicatorUI ti = turnPanel.AddComponent<TurnIndicatorUI>();
-        ti.playerPortrait = faceImg;
-        ti.playerNameText = nameText;
-        
+        TurnIndicatorUI ti = hudPanel.AddComponent<TurnIndicatorUI>();
+        ti.playerPanels = new List<PlayerHUDPanel>();
+
         // Link to GameControl
         GameControl gc = FindFirstObjectByType<GameControl>();
         if (gc)
@@ -295,12 +289,110 @@ public class SetupUICreator : EditorWindow
              Undo.RecordObject(gc, "Link Turn UI");
              gc.turnIndicator = ti;
         }
-        else
+
+        // Loop to create 5 Player Panels
+        for (int i = 0; i < 5; i++)
         {
-            Debug.LogWarning("Could not find GameControl to link Turn Indicator!");
+            GameObject pPanel = new GameObject($"PlayerPanel_{i+1}");
+            pPanel.transform.SetParent(hudPanel.transform, false);
+            
+            // Background & Script
+            Image pBg = pPanel.AddComponent<Image>();
+            pBg.color = new Color(1, 1, 1, 0.1f);
+            
+            PlayerHUDPanel php = pPanel.AddComponent<PlayerHUDPanel>();
+            
+            // Highlight
+            GameObject hlObj = new GameObject("Highlight");
+            hlObj.transform.SetParent(pPanel.transform, false);
+            RectTransform hlRT = hlObj.AddComponent<RectTransform>();
+            hlRT.anchorMin = Vector2.zero; hlRT.anchorMax = Vector2.one; 
+            hlRT.offsetMin = Vector2.zero; hlRT.offsetMax = Vector2.zero;
+            Image hlImg = hlObj.AddComponent<Image>();
+            hlImg.color = new Color(0, 1, 0, 0); // Transparent by default
+            php.activeHighlight = hlImg;
+
+            // Content Container (Vertical Layout) inside Panel? 
+            // Layout: Row 1 (Icon | Name | Score), Row 2 (Sockets)
+            // Let's manually place for simplicity or use Layouts. Manual is risky with resizing.
+            // Let's use Vertical Layout Group for the panel.
+            VerticalLayoutGroup vlg = pPanel.AddComponent<VerticalLayoutGroup>();
+            vlg.padding = new RectOffset(5, 5, 5, 5);
+            vlg.spacing = 5;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandHeight = false;
+
+            // -- Top Info (Horizontal) --
+            GameObject topInfo = new GameObject("TopInfo");
+            topInfo.transform.SetParent(pPanel.transform, false);
+            LayoutElement topLe = topInfo.AddComponent<LayoutElement>();
+            topLe.minHeight = 60; topLe.preferredHeight = 60; topLe.flexibleHeight = 0;
+            
+            HorizontalLayoutGroup infoHlg = topInfo.AddComponent<HorizontalLayoutGroup>();
+            infoHlg.childControlWidth = false; infoHlg.childForceExpandWidth = false;
+            infoHlg.spacing = 10;
+            
+            // Icon
+            GameObject iconObj = new GameObject("Icon");
+            iconObj.transform.SetParent(topInfo.transform, false);
+            Image iconImg = iconObj.AddComponent<Image>();
+            LayoutElement iconLe = iconObj.AddComponent<LayoutElement>();
+            iconLe.minWidth = 50; iconLe.minHeight = 50;
+            php.iconImage = iconImg;
+            
+            // Name
+            GameObject nameObj = CreateText("Name", $"P{i+1}", topInfo.transform, Vector2.zero, 18);
+            LayoutElement nameLe = nameObj.AddComponent<LayoutElement>();
+            nameLe.minWidth = 80;
+            nameLe.flexibleWidth = 1;
+            php.nameText = nameObj.GetComponent<Text>();
+            php.nameText.alignment = TextAnchor.MiddleLeft;
+            
+            // Score
+            GameObject scoreObj = CreateText("Score", "0", topInfo.transform, Vector2.zero, 20);
+            LayoutElement scoreLe = scoreObj.AddComponent<LayoutElement>();
+            scoreLe.minWidth = 50;
+            php.scoreText = scoreObj.GetComponent<Text>();
+            php.scoreText.alignment = TextAnchor.MiddleRight;
+
+            // -- Sockets (Grid) --
+            GameObject socketGrid = new GameObject("Sockets");
+            socketGrid.transform.SetParent(pPanel.transform, false);
+            LayoutElement gridLe = socketGrid.AddComponent<LayoutElement>();
+            gridLe.minHeight = 60; gridLe.preferredHeight = 60; gridLe.flexibleHeight = 1;
+            
+            GridLayoutGroup glg = socketGrid.AddComponent<GridLayoutGroup>();
+            glg.cellSize = new Vector2(25, 25);
+            glg.spacing = new Vector2(5, 5);
+            glg.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            glg.constraintCount = 4; // 4 columns
+            glg.childAlignment = TextAnchor.MiddleCenter;
+
+            // Create 8 Sockets
+            php.sockets = new Image[8];
+            for (int s = 0; s < 8; s++)
+            {
+                GameObject socket = new GameObject($"Socket_{s}");
+                socket.transform.SetParent(socketGrid.transform, false);
+                Image sImg = socket.AddComponent<Image>();
+                sImg.color = Color.gray;
+                php.sockets[s] = sImg;
+            }
+
+            ti.playerPanels.Add(php);
         }
-        
-        // Hide by default (GameControl will enable it)
-        turnPanel.SetActive(false);
+
+        // Status Text (Floating above?)
+        GameObject statusObj = CreateText("GlobalStatus", "Start Game!", hudPanel.transform, new Vector2(0, 100), 24);
+        ti.turnStatusText = statusObj.GetComponent<Text>();
+        // Status needs to ignore layout or be separate. 
+        // Adding LayoutElement ignore
+        LayoutElement statLe = statusObj.AddComponent<LayoutElement>();
+        statLe.ignoreLayout = true;
+        statusObj.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 1);
+        statusObj.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 1);
+        statusObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 30); // Above panel
+
+        hudPanel.SetActive(false);
     }
 }
