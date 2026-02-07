@@ -29,31 +29,38 @@ public class PlayerHUDPanel : MonoBehaviour
         // Or handle animation
     }
     
-    public void UpdateSockets(System.Collections.Generic.HashSet<string> completedCategories)
+    public void UpdateSockets(System.Collections.Generic.HashSet<string> completedCategories, System.Collections.Generic.List<TurnIndicatorUI.CategoryMapping> mappings)
     {
-        // Loop through sockets and color them if category collected
-        // Needs mapping logic. For now, just fill count?
-        // User said "sockets change to the color of the category"
-        // We need a shared definition of Category -> Index/Color
-        // Let's assume TurnIndicatorUI passes the color or we fill sequentially
-        
-        // Placeholder: Fill N sockets with generic color or loop
-        int count = 0;
-        foreach (var cat in completedCategories)
+        // 1. Reset all sockets to default (or gray)
+        if (sockets != null)
         {
-            if (count < sockets.Length)
+            foreach (var socket in sockets)
             {
-                 sockets[count].color = Color.cyan; // Placeholder color
-                 // Ideally: sockets[count].color = CategoryColors[cat];
-                 count++;
+                if (socket) socket.color = Color.gray; // Default empty color
             }
         }
-        
-        // Reset remaining
-        while (count < sockets.Length)
+
+        // 2. Iterate through completed categories and color mapped sockets
+        if (mappings != null && completedCategories != null)
         {
-            sockets[count].color = Color.gray; // Empty
-            count++;
+            foreach (var mapping in mappings)
+            {
+                // Check if this player has completed this category
+                // Convert enum to string for HashSet comparison since Set stores strings
+                string catName = mapping.category.ToString();
+                
+                if (completedCategories.Contains(catName))
+                {
+                     // Valid socket index?
+                     if (sockets != null && mapping.socketIndex >= 0 && mapping.socketIndex < sockets.Length)
+                     {
+                         if (sockets[mapping.socketIndex])
+                         {
+                             sockets[mapping.socketIndex].color = mapping.activeColor;
+                         }
+                     }
+                }
+            }
         }
     }
 }

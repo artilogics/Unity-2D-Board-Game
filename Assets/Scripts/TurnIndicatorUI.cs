@@ -9,6 +9,17 @@ public class TurnIndicatorUI : MonoBehaviour
     [Header("Shared")]
     public Text turnStatusText;
     
+    [System.Serializable]
+    public struct CategoryMapping
+    {
+        public SpecialTile.QuestionCategory category;
+        public int socketIndex;
+        public Color activeColor;
+    }
+
+    [Header("Category Configuration")]
+    public System.Collections.Generic.List<CategoryMapping> categoryMappings;
+
     [Header("Category Colors")]
     public Color defaultSocketColor = Color.gray;
     // Simple mapping for now
@@ -41,8 +52,8 @@ public class TurnIndicatorUI : MonoBehaviour
                  playerPanels[i].SetInfo(pName, pSprite, score);
                  playerPanels[i].SetActive(i == activePlayerIndex);
                  
-                 // Pass simple coloring for now (Cyan) until we map categories properly
-                 playerPanels[i].UpdateSockets(cats);
+                 // Pass mappings
+                 playerPanels[i].UpdateSockets(cats, categoryMappings);
              }
              else
              {
