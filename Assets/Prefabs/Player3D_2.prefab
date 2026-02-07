@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6517671383841233136}
   - component: {fileID: 7974017882089808789}
   m_Layer: 0
-  m_Name: Player3D
+  m_Name: Player3D_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27,8 +27,8 @@ Transform:
   m_GameObject: {fileID: 2296214037659529183}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.8, y: 0.64, z: 5.18}
-  m_LocalScale: {x: 0.18, y: 0.18, z: 0.18}
+  m_LocalPosition: {x: 0, y: 0, z: 5}
+  m_LocalScale: {x: 0.7, y: 0.7, z: 0.7}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2824871355274256273}
@@ -89,6 +89,7 @@ MonoBehaviour:
   isOverlapping: 0
   isCircular: 0
   startPosition: {fileID: 0}
+  modelRotationOffset: {x: 0, y: 0, z: 0}
   interactionBounceHeight: 0.5
   interactionDuration: 0.4
   moveSpeed: 1
@@ -124,7 +125,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b8346beb946d8084f97c804a759f1ba6, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1.35
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b8346beb946d8084f97c804a759f1ba6, type: 3}
       propertyPath: m_LocalPosition.z
