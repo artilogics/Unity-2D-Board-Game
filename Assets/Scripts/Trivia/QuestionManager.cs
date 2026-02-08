@@ -74,8 +74,22 @@ public class QuestionManager : MonoBehaviour
                 optionC = fields[3],
                 optionD = fields[4],
                 correctAnswer = fields[5].ToUpper(),
-                category = fields[6]
+                // Normalize Category: Title Case to match Enum.ToString()
+                // Assumes categories in CSV are like "science" or "SCIENCE" -> "Science"
+                // For now, let's just Trim. Ideally, we map to the Enum.
+                category = fields[6].Trim() 
             };
+            
+            // Try to match Enum if possible to ensure consistency
+            if (System.Enum.TryParse(question.category, true, out SpecialTile.QuestionCategory catEnum))
+            {
+                question.category = catEnum.ToString(); // Forces "Science" instead of "science"
+            }
+            else
+            {
+                Debug.LogWarning($"QuestionManager: Category '{question.category}' in CSV does not match any QuestionCategory Enum! defaulting to string.");
+                // We keep the string, but warn.
+            }
 
             // Add to category dictionary
             if (!questionsByCategory.ContainsKey(question.category))
@@ -85,7 +99,7 @@ public class QuestionManager : MonoBehaviour
             questionsByCategory[question.category].Add(question);
         }
 
-        Debug.Log($"QuestionManager: Loaded {id} questions across {questionsByCategory.Count} categories");
+        Debug.Log($"QuestionManager: Loaded {id} questions across {questionsByCategory.Keys.Count} categories: {string.Join(", ", questionsByCategory.Keys)}");
     }
 
     // Parse CSV line handling commas in quotes

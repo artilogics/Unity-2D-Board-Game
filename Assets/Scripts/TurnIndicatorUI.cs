@@ -47,13 +47,24 @@ public class TurnIndicatorUI : MonoBehaviour
                  // 1-based index for PlayerProgress
                  int pNum = i + 1;
                  int score = PlayerProgress.Instance.GetPoints(pNum);
+                 
+                 // Get completed categories
                  var cats = PlayerProgress.Instance.GetCompletedCategories(pNum);
+                 
+                 // Debug.Log($"TurnIndicatorUI: Player {pNum} ({pName}) has {cats.Count} categories complete.");
                  
                  playerPanels[i].SetInfo(pName, pSprite, score);
                  playerPanels[i].SetActive(i == activePlayerIndex);
                  
                  // Pass mappings
-                 playerPanels[i].UpdateSockets(cats, categoryMappings);
+                 if (categoryMappings != null && categoryMappings.Count > 0)
+                 {
+                     playerPanels[i].UpdateSockets(cats, categoryMappings);
+                 }
+                 else
+                 {
+                     Debug.LogWarning("TurnIndicatorUI: No Category Mappings found!");
+                 }
              }
              else
              {

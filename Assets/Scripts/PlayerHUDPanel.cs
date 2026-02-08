@@ -10,8 +10,7 @@ public class PlayerHUDPanel : MonoBehaviour
     
     [Header("Sockets")]
     public Image[] sockets; // 8 sockets (hypothetically)
-    // You might want 2 rows of 4
-    
+
     public void SetInfo(string name, Sprite icon, int score)
     {
         if (nameText) nameText.text = name;
@@ -28,7 +27,7 @@ public class PlayerHUDPanel : MonoBehaviour
         if (activeHighlight) activeHighlight.color = isActive ? Color.green : Color.clear;
         // Or handle animation
     }
-    
+
     public void UpdateSockets(System.Collections.Generic.HashSet<string> completedCategories, System.Collections.Generic.List<TurnIndicatorUI.CategoryMapping> mappings)
     {
         // 1. Reset all sockets to default (or gray)
@@ -49,6 +48,8 @@ public class PlayerHUDPanel : MonoBehaviour
                 // Convert enum to string for HashSet comparison since Set stores strings
                 string catName = mapping.category.ToString();
                 
+                Debug.Log($"HUD: Checking {catName}. Completed: {completedCategories.Contains(catName)}");
+
                 if (completedCategories.Contains(catName))
                 {
                      // Valid socket index?
@@ -57,6 +58,7 @@ public class PlayerHUDPanel : MonoBehaviour
                          if (sockets[mapping.socketIndex])
                          {
                              sockets[mapping.socketIndex].color = mapping.activeColor;
+                             // Debug.Log($"HUD Setting Socket {mapping.socketIndex} to {mapping.activeColor}");
                          }
                      }
                 }
