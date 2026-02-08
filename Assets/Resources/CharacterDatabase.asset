@@ -1,0 +1,136 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8b7b1ecaa84e2242ad46afd07151304, type: 3}
+  m_Name: CharacterDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterDatabase
+  characters:
+  - characterName: praxinoscopi
+    prefab3D: {fileID: 2296214037659529183, guid: 9fbc3de409d21774989ab0e9a4d789f0, type: 3}
+    sprites:
+    - {fileID: 695868359, guid: 1a9a9cb6a5d7f5e41a2d769f9939ad8e, type: 3}
+    - {fileID: 1896329641, guid: 1a9a9cb6a5d7f5e41a2d769f9939ad8e, type: 3}
+    - {fileID: 1038908408, guid: 1a9a9cb6a5d7f5e41a2d769f9939ad8e, type: 3}
+    - {fileID: 156281174, guid: 1a9a9cb6a5d7f5e41a2d769f9939ad8e, type: 3}
+    - {fileID: -259324918, guid: 1a9a9cb6a5d7f5e41a2d769f9939ad8e, type: 3}
+    - {fileID: -2139249452, guid: 1a9a9cb6a5d7f5e41a2d769f9939ad8e, type: 3}
+    - {fileID: -81148776, guid: 1a9a9cb6a5d7f5e41a2d769f9939ad8e, type: 3}
+    - {fileID: -1502314215, guid: 1a9a9cb6a5d7f5e41a2d769f9939ad8e, type: 3}
+    - {fileID: 384016430, guid: 1a9a9cb6a5d7f5e41a2d769f9939ad8e, type: 3}
+  - characterName: camera
+    prefab3D: {fileID: 2296214037659529183, guid: ef86cc24a454b6a48b961df618a73ff5, type: 3}
+    sprites:
+    - {fileID: -888833484, guid: 14c9f89344fa8654d8b36ef7162f0e8b, type: 3}
+    - {fileID: 1018795664, guid: 14c9f89344fa8654d8b36ef7162f0e8b, type: 3}
+    - {fileID: 1843886569, guid: 14c9f89344fa8654d8b36ef7162f0e8b, type: 3}
+    - {fileID: -1832096156, guid: 14c9f89344fa8654d8b36ef7162f0e8b, type: 3}
+    - {fileID: 1670177522, guid: 14c9f89344fa8654d8b36ef7162f0e8b, type: 3}
+    - {fileID: -2018635750, guid: 14c9f89344fa8654d8b36ef7162f0e8b, type: 3}
+    - {fileID: -2079404267, guid: 14c9f89344fa8654d8b36ef7162f0e8b, type: 3}
+    - {fileID: 881523428, guid: 14c9f89344fa8654d8b36ef7162f0e8b, type: 3}
+    - {fileID: -1177674817, guid: 14c9f89344fa8654d8b36ef7162f0e8b, type: 3}
+  - characterName: 
+    prefab3D: {fileID: 2296214037659529183, guid: 784c768cd7c933d4da61d19a5c784415, type: 3}
+    sprites:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - characterName: 
+    prefab3D: {fileID: 2296214037659529183, guid: cd7897fb8e0834b49b5467487c98d02a, type: 3}
+    sprites:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - characterName: 
+    prefab3D: {fileID: 2296214037659529183, guid: f4ae00f6848af2a4ea98229fbff0d52b, type: 3}
+    sprites:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - characterName: 
+    prefab3D: {fileID: 2296214037659529183, guid: e7983b19affbd8248a2917367f303fa3, type: 3}
+    sprites:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - characterName: 
+    prefab3D: {fileID: 2296214037659529183, guid: e7320163bf33d8b4fa457157ec024575, type: 3}
+    sprites:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - characterName: 
+    prefab3D: {fileID: 2296214037659529183, guid: b4b25fd2fb7017f47a1c061ca5210690, type: 3}
+    sprites:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  availableColors:
+  - colorName: Red
+    uiColor: {r: 1, g: 0, b: 0, a: 1}
+    material3D: {fileID: 0}
+  - colorName: Orange
+    uiColor: {r: 1, g: 0.5490196, b: 0, a: 1}
+    material3D: {fileID: 0}
+  - colorName: Yellow
+    uiColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    material3D: {fileID: 0}
+  - colorName: Green
+    uiColor: {r: 0, g: 1, b: 0, a: 1}
+    material3D: {fileID: 0}
+  - colorName: Cyan
+    uiColor: {r: 0, g: 1, b: 1, a: 1}
+    material3D: {fileID: 0}
+  - colorName: Blue
+    uiColor: {r: 0, g: 0, b: 1, a: 1}
+    material3D: {fileID: 0}
+  - colorName: Purple
+    uiColor: {r: 0.5411765, g: 0.1686275, b: 0.8862746, a: 1}
+    material3D: {fileID: 0}
+  - colorName: Pink
+    uiColor: {r: 1, g: 0, b: 1, a: 1}
+    material3D: {fileID: 0}

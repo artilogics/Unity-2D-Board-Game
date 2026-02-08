@@ -14,14 +14,7 @@ public class GameControl : MonoBehaviour {
     
     [Header("3D Settings")]
     public bool use3DCharacters = false;
-    public List<CharacterTo3D> charModels; 
-
-    [System.Serializable]
-    public struct CharacterTo3D
-    {
-        public Sprite sprite;
-        public GameObject prefab3D;
-    }
+    public CharacterDatabase charDB; // New DB Reference (Assign in Inspector or Auto-load)
 
     [Header("UI References")]
     public Text statusText;
@@ -43,6 +36,13 @@ public class GameControl : MonoBehaviour {
         else Destroy(gameObject);
         
         dice = GameObject.Find("Dice");
+        
+        // Auto-load DB if missing
+        if (charDB == null)
+        {
+            charDB = Resources.Load<CharacterDatabase>("CharacterDatabase");
+            if (charDB == null) Debug.LogError("[GameControl] CharacterDatabase not found in Resources or assigned!");
+        }
     }
 
     // Initialize Game from Setup Manager
@@ -52,6 +52,8 @@ public class GameControl : MonoBehaviour {
         activeMarkers.Clear();
         
         playerMissTurn = new bool[configs.Count];
+        
+        if (charDB == null) Debug.LogError("GameControl: CharacterDatabase is NULL! 3D models will not spawn.");
         
         // Find Waypoints reference if missing
         if (mapReference == null)
@@ -91,26 +93,47 @@ public class GameControl : MonoBehaviour {
                 
                 // Find and Spawn 3D Model
                 GameObject modelPrefab = null;
-                foreach(var mapping in charModels)
+                Material materialToApply = null;
+
+                // New Database Path
+                if (charDB != null && cfg.ModelIndex >= 0 && cfg.ModelIndex < charDB.characters.Count)
                 {
-                    if (mapping.sprite == cfg.CharacterSprite)
+                    modelPrefab = charDB.characters[cfg.ModelIndex].prefab3D;
+                    
+                    if (cfg.ColorIndex >= 0 && cfg.ColorIndex < charDB.availableColors.Count)
                     {
-                        modelPrefab = mapping.prefab3D;
-                        break;
+                        materialToApply = charDB.availableColors[cfg.ColorIndex].material3D;
                     }
                 }
-                
+                // Fallback (Legacy)
+                else
+                {
+                     // Try to find by sprite? (Old method removed for clarity, or kept as extra fallback)
+                }
+
                 if (modelPrefab)
                 {
                     GameObject model = Instantiate(modelPrefab, newPlayer.transform);
                     model.transform.localPosition = Vector3.zero;
                     model.transform.localRotation = Quaternion.identity;
-                    // Ensure the new model is active
                     model.SetActive(true);
+                    
+                    // Apply Material
+                    if (materialToApply != null)
+                    {
+                        Renderer[] renderers = model.GetComponentsInChildren<Renderer>();
+                        foreach(var r in renderers)
+                        {
+                            r.material = materialToApply;
+                        }
+                    }
                 }
                 else
                 {
-                    Debug.LogWarning($"[GameControl] No 3D model found for sprite: {cfg.CharacterSprite?.name}. Defaulting to Base Visuals.");
+                    Debug.LogWarning($"[GameControl] No 3D model found for player {cfg.PlayerName}. " +
+                                     $"DB: {(charDB!=null?"OK":"NULL")}, " +
+                                     $"Index: {cfg.ModelIndex} (Count: {(charDB!=null?charDB.characters.Count.ToString():"N/A")}). " +
+                                     "Defaulting to Base Visuals.");
                     // Fallback: Re-enable renderers
                     foreach(var r in newPlayer.GetComponentsInChildren<Renderer>()) r.enabled = true;
                     if (sr) sr.enabled = true; 

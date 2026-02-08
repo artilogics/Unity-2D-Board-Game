@@ -93,8 +93,6 @@ public class SetupUICreator : EditorWindow
 
         Undo.RecordObject(manager, "Link Setup UI");
         manager.setupPanel = setupPanel;
-        // Assume Game Panel exists or user assigns it, or create a placeholder
-        // manager.gamePanel = ... 
         
         manager.playerCountStep = countStep;
         manager.playerConfigStep = configStep;
@@ -110,66 +108,89 @@ public class SetupUICreator : EditorWindow
         manager.startGameButton = startBtn.GetComponent<Button>();
         manager.nextButton = nextBtn.GetComponent<Button>();
         manager.selectedCharPreview = previewImg;
-        manager.feedbackText = feedbackText; // Link feedback text
+        manager.feedbackText = feedbackText;
         
         // Link Actions - Nav Buttons
-        // Note: UnityEvents in Editor don't persist perfectly for runtime if target is scene object, but it usually works.
-        // Better to set them up via script connection or cleaner serialized events.
-        // For this generated tool, we try our best.
         UnityEditor.Events.UnityEventTools.AddPersistentListener(nextBtn.GetComponent<Button>().onClick, manager.OnNextPlayerButton);
         UnityEditor.Events.UnityEventTools.AddPersistentListener(startBtn.GetComponent<Button>().onClick, manager.OnStartGameButton);
         
-        // 6. Try to populate characters
-        Sprite[] sprites = LoadSprites();
-        if (sprites != null && sprites.Length > 0)
+        // 6. Load Character Database
+        CharacterDatabase db = Resources.Load<CharacterDatabase>("CharacterDatabase");
+        if (db)
         {
-            manager.availableCharacters = sprites;
-            // Create buttons for them in grid
-            for(int i=0; i<sprites.Length; i++)
+            manager.charDB = db;
+            
+            // Populate Character Grid (Models)
+            // We use Index 0 (Neutral) sprite for the button
+            for(int i=0; i<db.characters.Count; i++)
             {
-                CreateCharSelectButton(i, sprites[i], charGrid.transform, manager);
+                var charData = db.characters[i];
+                Sprite neutral = (charData.sprites != null && charData.sprites.Length > 0) ? charData.sprites[0] : null;
+                CreateCharSelectButton(i, neutral, charGrid.transform, manager, true);
             }
+            
+            // 7. Create Color Grid
+            GameObject colorGrid = new GameObject("ColorGrid");
+            colorGrid.transform.SetParent(configStep.transform, false);
+            RectTransform cRect = colorGrid.AddComponent<RectTransform>();
+            cRect.sizeDelta = new Vector2(500, 60);
+            cRect.anchoredPosition = new Vector2(0, -160); // Below char grid
+            GridLayoutGroup cGrid = colorGrid.AddComponent<GridLayoutGroup>();
+            cGrid.cellSize = new Vector2(50, 50);
+            cGrid.spacing = new Vector2(10, 10);
+            cGrid.childAlignment = TextAnchor.MiddleCenter;
+            
+            manager.colorGrid = colorGrid.transform;
+            
+            // Populate Colors
+            for(int i=0; i<db.availableColors.Count; i++)
+            {
+                 var colData = db.availableColors[i];
+                 CreateColorSelectButton(i, colData.uiColor, colorGrid.transform, manager);
+            }
+            
+            colorGrid.SetActive(false); // Hidden by default
         }
         else
         {
-            Debug.LogWarning("Could not auto-load sprites. Please assign them manually.");
+             Debug.LogWarning("CharacterDatabase not found in Resources! Please creating using Tools menu.");
         }
         
-        // 7. Create Turn Indicator Panel (New Request)
+        // 8. Turindicator
         CreateTurnIndicatorPanel(canvas.transform);
 
         Debug.Log("UI Generated Successfully!");
     }
     
-    // Helper to find sprites
-    private Sprite[] LoadSprites()
-    {
-        // Try to load 'characters' from Resources if possible? 
-        // Or AssetDatabase
-        string path = "Assets/Sprites/characters.png";
-        Object[] objs = AssetDatabase.LoadAllAssetsAtPath(path);
-        List<Sprite> sprites = new List<Sprite>();
-        foreach(Object o in objs)
-        {
-            if (o is Sprite s) sprites.Add(s);
-        }
-        return sprites.ToArray();
-    }
+    // ... helper for sprites removed ...
 
-    private void CreateCharSelectButton(int index, Sprite sprite, Transform parent, GameSetupManager manager)
+    private void CreateCharSelectButton(int index, Sprite sprite, Transform parent, GameSetupManager manager, bool isModel)
     {
-        GameObject btnObj = new GameObject("CharBtn_" + index);
+        GameObject btnObj = new GameObject(isModel? "ModelBtn_" + index : "Btn_"+index);
         btnObj.transform.SetParent(parent, false);
         Image img = btnObj.AddComponent<Image>();
         img.sprite = sprite;
+        if (sprite == null) img.color = Color.white; // placeholder
         
         Button btn = btnObj.AddComponent<Button>();
         
         // Add Listener
-        CharSelectButton csb = btnObj.AddComponent<CharSelectButton>();
-        csb.index = index;
-        csb.manager = manager;
-        UnityEditor.Events.UnityEventTools.AddPersistentListener(btn.onClick, csb.OnClick);
+        // We need a helper for converting the int arg
+        // But UnityEventTools can do it directly to the manager function
+        if (isModel)
+            UnityEditor.Events.UnityEventTools.AddIntPersistentListener(btn.onClick, manager.OnCharacterSelected, index);
+    }
+    
+    private void CreateColorSelectButton(int index, Color displayColor, Transform parent, GameSetupManager manager)
+    {
+        GameObject btnObj = new GameObject("ColorBtn_" + index);
+        btnObj.transform.SetParent(parent, false);
+        Image img = btnObj.AddComponent<Image>();
+        img.color = displayColor;
+        
+        Button btn = btnObj.AddComponent<Button>();
+        
+        UnityEditor.Events.UnityEventTools.AddIntPersistentListener(btn.onClick, manager.OnColorSelected, index);
     }
 
     private GameObject CreatePanel(string name, Transform parent)
