@@ -70,12 +70,16 @@ public class Dice : MonoBehaviour {
     private void CheckClickAtPosition(Vector2 screenPosition, string inputType)
     {
         Ray ray = Camera.main.ScreenPointToRay(screenPosition);
-        // Use GetRayIntersection - better for picking 2D objects with camera rays (handles Z-depth correctly)
-        RaycastHit2D hit = Physics2D.GetRayIntersection(ray);
+        // Use GetRayIntersectionAll to pierce through blocking player colliders
+        RaycastHit2D[] hits = Physics2D.GetRayIntersectionAll(ray);
 
-        if (hit.collider != null && hit.collider.gameObject == gameObject)
+        foreach(var hit in hits)
         {
-            HandleDiceClick();
+            if (hit.collider != null && hit.collider.gameObject == gameObject)
+            {
+                HandleDiceClick();
+                break; // Found the dice, stop checking
+            }
         }
     }
 

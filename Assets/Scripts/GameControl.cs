@@ -82,8 +82,12 @@ public class GameControl : MonoBehaviour {
 
             if (use3DCharacters)
             {
-                // Disable Sprite Renderer
-                if (sr) sr.enabled = false;
+                // HIDDEN: Disable ALL default visuals (MeshRenderer, SpriteRenderer, etc.) on the base prefab
+                // This prevents "Player 1's Mesh" from showing up if it was part of the base prefab.
+                foreach(var r in newPlayer.GetComponentsInChildren<Renderer>())
+                {
+                     r.enabled = false;
+                }
                 
                 // Find and Spawn 3D Model
                 GameObject modelPrefab = null;
@@ -101,11 +105,15 @@ public class GameControl : MonoBehaviour {
                     GameObject model = Instantiate(modelPrefab, newPlayer.transform);
                     model.transform.localPosition = Vector3.zero;
                     model.transform.localRotation = Quaternion.identity;
+                    // Ensure the new model is active
+                    model.SetActive(true);
                 }
                 else
                 {
-                    Debug.LogWarning($"[GameControl] No 3D model found for sprite: {cfg.CharacterSprite?.name}. Defaulting to Sprite.");
-                    if (sr) sr.enabled = true; // Fallback
+                    Debug.LogWarning($"[GameControl] No 3D model found for sprite: {cfg.CharacterSprite?.name}. Defaulting to Base Visuals.");
+                    // Fallback: Re-enable renderers
+                    foreach(var r in newPlayer.GetComponentsInChildren<Renderer>()) r.enabled = true;
+                    if (sr) sr.enabled = true; 
                 }
             }
             else
@@ -252,11 +260,19 @@ public class GameControl : MonoBehaviour {
                      string category = tile.GetCategoryString();
                      // Pause turn, show popup
                      TriviaPopup.Instance.ShowQuestion(category, currentPlayerIndex + 1, (correct) => {
-                         // Callback when popup closes
-                         // Logic: Reward/Penalty is handled by Popup -> PlayerProgress
-                         // We just proceed
-                         SwitchTurn();
-                         dice.GetComponent<Dice>().ResetDice();
+                          // Callback when popup closes
+                          if (correct)
+                          {
+                              ShowStatus("Correct! Roll Again!", 2f);
+                              dice.GetComponent<Dice>().ResetDice();
+                              UpdateUI(); // Update HUD for sockets
+                          }
+                          else
+                          {
+                              ShowStatus("Wrong!", 1.5f);
+                              SwitchTurn();
+                              dice.GetComponent<Dice>().ResetDice();
+                          }
                      });
                      return; // Wait for callback
                  }
