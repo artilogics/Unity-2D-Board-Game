@@ -112,16 +112,16 @@ MonoBehaviour:
   availableColors:
   - colorName: Red
     uiColor: {r: 1, g: 0, b: 0, a: 1}
-    material3D: {fileID: 0}
+    material3D: {fileID: 2100000, guid: d48c9ea902667e849aad6b1eb975913b, type: 2}
   - colorName: Orange
     uiColor: {r: 1, g: 0.5490196, b: 0, a: 1}
-    material3D: {fileID: 0}
+    material3D: {fileID: 2100000, guid: efa098cd0d8f0bc4482d2d913f18e1cb, type: 2}
   - colorName: Yellow
     uiColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
     material3D: {fileID: 0}
   - colorName: Green
     uiColor: {r: 0, g: 1, b: 0, a: 1}
-    material3D: {fileID: 0}
+    material3D: {fileID: 2100000, guid: 426530faecf867c4b91206151bb8e47f, type: 2}
   - colorName: Cyan
     uiColor: {r: 0, g: 1, b: 1, a: 1}
     material3D: {fileID: 0}
