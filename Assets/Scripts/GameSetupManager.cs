@@ -48,7 +48,8 @@ public class GameSetupManager : MonoBehaviour
 
     public void OnPlayerCountSelected(int count)
     {
-        totalPlayers = count;
+        totalPlayers = Mathf.Clamp(count, 2, 4); // Enforce GDD limit (2-4 players)
+        // totalPlayers = count; 
         players.Clear();
         currentPlayerIndex = 0;
         

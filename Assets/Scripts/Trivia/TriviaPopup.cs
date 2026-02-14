@@ -152,6 +152,9 @@ public class TriviaPopup : MonoBehaviour
                 feedbackText.text = "✓ CORRECT!";
                 feedbackText.color = Color.green;
                 
+                // Audio Feedback
+                if (AudioManager.Instance != null) AudioManager.Instance.PlayCorrectAnswer();
+
                 // Trigger confetti!
                 if (confettiEffect != null)
                 {
@@ -163,6 +166,9 @@ public class TriviaPopup : MonoBehaviour
             {
                 feedbackText.text = $"✗ WRONG! Correct answer was {currentQuestion.correctAnswer}";
                 feedbackText.color = Color.red;
+
+                // Audio Feedback
+                if (AudioManager.Instance != null) AudioManager.Instance.PlayWrongAnswer();
             }
         }
         else

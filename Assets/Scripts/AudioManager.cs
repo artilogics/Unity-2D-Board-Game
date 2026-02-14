@@ -171,4 +171,32 @@ public class AudioManager : MonoBehaviour
             sfxSource.PlayOneShot(diceBounce[randomIndex]);
         }
     }
+
+    // --- New Methods ---
+
+    [Header("New SFX")]
+    public AudioClip winSFX;
+    public AudioClip turnSwitchSFX;
+    public AudioClip correctSFX;
+    public AudioClip wrongSFX;
+
+    public void PlayWinSound()
+    {
+        if (sfxEnabled && winSFX != null) sfxSource.PlayOneShot(winSFX);
+    }
+
+    public void PlayTurnSwitchSound()
+    {
+        if (sfxEnabled && turnSwitchSFX != null) sfxSource.PlayOneShot(turnSwitchSFX);
+    }
+
+    public void PlayCorrectAnswer()
+    {
+        if (sfxEnabled && correctSFX != null) sfxSource.PlayOneShot(correctSFX);
+    }
+
+    public void PlayWrongAnswer()
+    {
+        if (sfxEnabled && wrongSFX != null) sfxSource.PlayOneShot(wrongSFX);
+    }
 }

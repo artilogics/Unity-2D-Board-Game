@@ -226,6 +226,7 @@ public class GameControl : MonoBehaviour {
             gameOver = true;
             statusText.gameObject.SetActive(true);
             statusText.text = $"{activePlayer.name} Wins!";
+            if (AudioManager.Instance) AudioManager.Instance.PlayWinSound(); // Audio
             return;
         }
         
@@ -340,6 +341,19 @@ public class GameControl : MonoBehaviour {
         currentPlayerIndex = nextPlayer;
         dice.GetComponent<Dice>().SetTurn(currentPlayerIndex);
         UpdateUI();
+
+        // Audio & Camera
+        if (Instance)
+        {
+            if (AudioManager.Instance) AudioManager.Instance.PlayTurnSwitchSound();
+            
+            // Update Camera Target
+            CameraFollow cam = Camera.main.GetComponent<CameraFollow>();
+            if (cam && players.Count > currentPlayerIndex)
+            {
+                cam.SetTarget(players[currentPlayerIndex].transform);
+            }
+        }
     }
     
     public void ShowStatus(string text, float duration)
