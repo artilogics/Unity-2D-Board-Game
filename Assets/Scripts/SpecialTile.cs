@@ -20,7 +20,8 @@ public class SpecialTile : MonoBehaviour
         Entertainment,
         Literature,
         Art,
-        General
+        General,
+        Random
     }
 
     public TileEffect effect = TileEffect.ExtraRoll;
@@ -32,6 +33,12 @@ public class SpecialTile : MonoBehaviour
     // Get category as string for QuestionManager
     public string GetCategoryString()
     {
+        if (questionCategory == QuestionCategory.Random)
+        {
+            QuestionCategory[] categories = (QuestionCategory[])System.Enum.GetValues(typeof(QuestionCategory));
+            int randomIndex = UnityEngine.Random.Range(0, categories.Length - 1);
+            return categories[randomIndex].ToString();
+        }
         return questionCategory.ToString();
     }
 }
