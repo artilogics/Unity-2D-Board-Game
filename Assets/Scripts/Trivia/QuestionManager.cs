@@ -136,35 +136,69 @@ public class QuestionManager : MonoBehaviour
     {
         if (!questionsByCategory.ContainsKey(category))
         {
-            Debug.LogWarning($"QuestionManager: Category '{category}' not found!");
-            return null;
+            Debug.LogWarning($"QuestionManager: Category '{category}' not found! Checking fallback pool.");
+            // If the category completely doesn't exist, we skip straight to the global fallback
         }
-
-        List<TriviaQuestion> pool = questionsByCategory[category];
-
-        // Priority 1: Unanswered questions
-        var unanswered = pool.Where(q => !askedQuestionIds.Contains(q.id)).ToList();
-        if (unanswered.Count > 0)
+        else
         {
-            return GetRandomQuestion(unanswered);
+            List<TriviaQuestion> pool = questionsByCategory[category];
+
+            // Priority 1: Unanswered questions in requested category
+            var unansweredTarget = pool.Where(q => !askedQuestionIds.Contains(q.id)).ToList();
+            if (unansweredTarget.Count > 0)
+            {
+                return GetRandomQuestion(unansweredTarget);
+            }
         }
 
-        // Priority 2: Incorrectly answered questions
-        var incorrect = pool.Where(q => answeredCorrectly.ContainsKey(q.id) && !answeredCorrectly[q.id]).ToList();
-        if (incorrect.Count > 0)
+        // --- GLOBAL FALLBACK START ---
+        List<TriviaQuestion> allPool = new List<TriviaQuestion>();
+        foreach (var p in questionsByCategory.Values) allPool.AddRange(p);
+
+        // Priority 2: Unanswered questions ANY category
+        var unansweredGlobal = allPool.Where(q => !askedQuestionIds.Contains(q.id)).ToList();
+        if (unansweredGlobal.Count > 0)
         {
-            return GetRandomQuestion(incorrect);
+            Debug.Log($"QuestionManager: Category '{category}' exhausted fresh questions. Giving global fresh question!");
+            return GetRandomQuestion(unansweredGlobal);
         }
 
-        // Priority 3: Correctly answered (all exhausted)
-        var correct = pool.Where(q => answeredCorrectly.ContainsKey(q.id) && answeredCorrectly[q.id]).ToList();
-        if (correct.Count > 0)
+        // At this point, EVERY single question in the game has been asked at least once.
+        // We now start recycling old questions.
+
+        // Priority 3: Incorrectly answered questions in requested category
+        if (questionsByCategory.ContainsKey(category))
         {
-            return GetRandomQuestion(correct);
+            var incorrectTarget = questionsByCategory[category].Where(q => answeredCorrectly.ContainsKey(q.id) && !answeredCorrectly[q.id]).ToList();
+            if (incorrectTarget.Count > 0)
+            {
+                Debug.Log($"QuestionManager: All global questions asked. Giving incorrect '{category}' question.");
+                return GetRandomQuestion(incorrectTarget);
+            }
         }
 
-        Debug.LogWarning($"QuestionManager: No questions available for category '{category}'");
-        return null;
+        // Priority 4: Incorrectly answered questions ANY category
+        var incorrectGlobal = allPool.Where(q => answeredCorrectly.ContainsKey(q.id) && !answeredCorrectly[q.id]).ToList();
+        if (incorrectGlobal.Count > 0)
+        {
+            Debug.Log($"QuestionManager: All global questions asked. Giving incorrect global question.");
+            return GetRandomQuestion(incorrectGlobal);
+        }
+
+        // Priority 5: Everything has been answered correctly! Just give a random question from requested category if possible
+        if (questionsByCategory.ContainsKey(category))
+        {
+            var correctTarget = questionsByCategory[category].Where(q => answeredCorrectly.ContainsKey(q.id) && answeredCorrectly[q.id]).ToList();
+            if (correctTarget.Count > 0)
+            {
+                Debug.Log($"QuestionManager: Every question in the game answered correctly. Re-asking '{category}' question.");
+                return GetRandomQuestion(correctTarget);
+            }
+        }
+
+        // Priority 6: Absolute fallback (Should never reach here unless CSV is empty)
+        Debug.LogWarning("QuestionManager: Absolute fallback reached. Randomly picking any question.");
+        return GetRandomQuestion(allPool);
     }
 
     private TriviaQuestion GetRandomQuestion(List<TriviaQuestion> pool)

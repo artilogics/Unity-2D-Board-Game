@@ -26,6 +26,9 @@ public class GameControl : MonoBehaviour {
     public static bool gameOver = false;
     public static int diceSideThrown = 0;
     
+    // Board Ref
+    public BoardController boardController;
+    
     // Internal
     private static bool[] playerMissTurn;
     private static GameObject dice;
@@ -60,6 +63,16 @@ public class GameControl : MonoBehaviour {
         {
              GameObject p1 = GameObject.Find("Player1");
              if (p1) mapReference = p1.GetComponent<FollowThePath>();
+        }
+
+        // Try to find BoardController if not assigned
+        if (boardController == null)
+        {
+            boardController = Object.FindAnyObjectByType<BoardController>();
+            if (boardController == null)
+            {
+                Debug.LogWarning("[GameControl] No BoardController found in scene! Board will not spin.");
+            }
         }
 
         // Spawn Players
@@ -170,6 +183,12 @@ public class GameControl : MonoBehaviour {
             }
             path.playerOffset = offset; 
 
+            // Parent player to the board so they rotate with it
+            if (boardController != null)
+            {
+                newPlayer.transform.SetParent(boardController.transform, true);
+            }
+
             players.Add(newPlayer);
             
             // Setup UI
@@ -189,6 +208,23 @@ public class GameControl : MonoBehaviour {
         gameOver = false;
         
         UpdateUI();
+        
+        // Initial Spin Effect
+        if (boardController != null)
+        {
+            if (players.Count > 0)
+            {
+                boardController.RotateToFacePlayerWithExtraSpin(players[0].transform, 1, () => {
+                    Debug.Log("Initial board spin complete.");
+                });
+            }
+            else
+            {
+                boardController.SpinToStart(() => {
+                    Debug.Log("Initial board spin complete.");
+                });
+            }
+        }
     }
 
     private static void UpdateUI()
@@ -252,7 +288,18 @@ public class GameControl : MonoBehaviour {
             if (tile.effect == SpecialTile.TileEffect.ExtraRoll)
             {
                 ShowStatus("Extra Roll!", 1.5f);
-                dice.GetComponent<Dice>().ResetDice();
+                
+                // Focus Board Again
+                if (Instance.boardController != null)
+                {
+                    Instance.boardController.RotateToFacePlayer(activePlayer.transform, () => {
+                         dice.GetComponent<Dice>().ResetDice();
+                    });
+                }
+                else
+                {
+                    dice.GetComponent<Dice>().ResetDice();
+                }
                 // Turn stays same
                 return;
             }
@@ -288,8 +335,19 @@ public class GameControl : MonoBehaviour {
                           if (correct)
                           {
                               ShowStatus("Correct! Roll Again!", 2f);
-                              dice.GetComponent<Dice>().ResetDice();
                               UpdateUI(); // Update HUD for sockets
+                              
+                              // Focus Board Again
+                              if (Instance.boardController != null)
+                              {
+                                  Instance.boardController.RotateToFacePlayer(activePlayer.transform, () => {
+                                       dice.GetComponent<Dice>().ResetDice();
+                                  });
+                              }
+                              else
+                              {
+                                  dice.GetComponent<Dice>().ResetDice();
+                              }
                           }
                           else
                           {
@@ -341,6 +399,12 @@ public class GameControl : MonoBehaviour {
         currentPlayerIndex = nextPlayer;
         dice.GetComponent<Dice>().SetTurn(currentPlayerIndex);
         UpdateUI();
+
+        // Rotate board to focus on this player
+        if (Instance.boardController != null && players.Count > currentPlayerIndex)
+        {
+            Instance.boardController.RotateToFacePlayer(players[currentPlayerIndex].transform);
+        }
 
         // Audio & Camera
         if (Instance)

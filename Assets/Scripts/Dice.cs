@@ -93,9 +93,9 @@ public class Dice : MonoBehaviour {
         // We ignore the click on the parent 2D object to prevent double-activation.
         if (use3DPhysics && dice3DObject != null)
         {
-             if (!coroutineAllowed)
+             if (!coroutineAllowed || (BoardController.Instance != null && BoardController.Instance.IsSpinning))
              {
-                 Debug.LogWarning("Dice click blocked (3D)! coroutineAllowed=false");
+                 Debug.LogWarning("Dice click blocked (3D)! coroutineAllowed=" + coroutineAllowed + " or Board is spinning.");
                  return;
              }
 
@@ -104,14 +104,14 @@ public class Dice : MonoBehaviour {
              return; 
         }
 
-        if (!GameControl.gameOver && coroutineAllowed)
+        if (!GameControl.gameOver && coroutineAllowed && (BoardController.Instance == null || !BoardController.Instance.IsSpinning))
         {
             Debug.Log("Starting RollTheDice coroutine!");
             StartCoroutine("RollTheDice");
         }
         else
         {
-            Debug.LogWarning($"Dice click blocked! gameOver={GameControl.gameOver}, coroutineAllowed={coroutineAllowed}");
+            Debug.LogWarning($"Dice click blocked! gameOver={GameControl.gameOver}, coroutineAllowed={coroutineAllowed}, boardSpinning={(BoardController.Instance != null && BoardController.Instance.IsSpinning)}");
         }
     }
 
