@@ -56,24 +56,4 @@ public class TriviaDebugger : MonoBehaviour
         
         Debug.Log("=== END DEBUG ===");
     }
-    
-    void Update()
-    {
-        // Press T to test popup
-        if (Keyboard.current != null && Keyboard.current[Key.T].wasPressedThisFrame)
-        {
-            Debug.Log("Testing popup with Science category for Player 1...");
-            if (TriviaPopup.Instance != null)
-            {
-                TriviaPopup.Instance.ShowQuestion("Science", 1, (correct) => 
-                {
-                    Debug.Log($"Test answer was: {(correct ? "CORRECT" : "WRONG")}");
-                });
-            }
-            else
-            {
-                Debug.LogError("Can't test - TriviaPopup.Instance is null!");
-            }
-        }
-    }
 }

@@ -10,6 +10,8 @@ public class GameSetupManager : MonoBehaviour
     public GameObject gamePanel;  // The main game UI (to be enabled later)
     
     [Header("Setup Steps")]
+    public GameObject welcomeStep;
+    public GameObject startGameStep;
     public GameObject playerCountStep;
     public GameObject playerConfigStep;
     
@@ -21,6 +23,13 @@ public class GameSetupManager : MonoBehaviour
     public Button nextButton;
     public Image selectedCharPreview;
     public Text feedbackText;
+
+    [Header("Start Game UI Elements")]
+    public Dropdown dayInput;
+    public Dropdown monthInput;
+    public Dropdown yearInput;
+    public InputField codeInput;
+    public Text startGameFeedbackText;
 
     [Header("Resources")]
     public CharacterDatabase charDB; // Assign in Inspector
@@ -43,6 +52,63 @@ public class GameSetupManager : MonoBehaviour
         // Try to load DB if not assigned (auto-find)
         if (charDB == null) charDB = Resources.Load<CharacterDatabase>("CharacterDatabase");
 
+        ShowWelcomeStep();
+    }
+
+    private void ShowWelcomeStep()
+    {
+        if (welcomeStep) welcomeStep.SetActive(true);
+        if (startGameStep) startGameStep.SetActive(false);
+        if (playerCountStep) playerCountStep.SetActive(false);
+        if (playerConfigStep) playerConfigStep.SetActive(false);
+    }
+
+    public void OnWelcomeFinished()
+    {
+        ShowStartGameStep();
+    }
+
+    private void ShowStartGameStep()
+    {
+        if (welcomeStep) welcomeStep.SetActive(false);
+        if (startGameStep) startGameStep.SetActive(true);
+        if (playerCountStep) playerCountStep.SetActive(false);
+        if (playerConfigStep) playerConfigStep.SetActive(false);
+        
+        if (startGameFeedbackText) startGameFeedbackText.text = "";
+    }
+
+    public void OnLoggedGameSelected()
+    {
+        bool hasDay = dayInput != null && dayInput.value > 0;
+        bool hasMonth = monthInput != null && monthInput.value > 0;
+        bool hasYear = yearInput != null && yearInput.value > 0;
+        bool hasCode = codeInput != null && !string.IsNullOrWhiteSpace(codeInput.text);
+
+        if (!hasDay || !hasMonth || !hasYear || !hasCode)
+        {
+            if (startGameFeedbackText) startGameFeedbackText.text = "Please select all Date fields and fill the Game Code.";
+            return;
+        }
+
+        if (startGameFeedbackText) startGameFeedbackText.text = "";
+
+        string day = dayInput.options[dayInput.value].text;
+        string month = monthInput.options[monthInput.value].text;
+        string year = yearInput.options[yearInput.value].text;
+        string date = $"{year}-{month}-{day}";
+        string code = codeInput.text;
+        
+        Debug.Log($"[Placeholder] Logged Game Started. Date: {date}, Code: {code}");
+        
+        ShowPlayerCountSelection();
+    }
+
+    public void OnGuestSessionSelected()
+    {
+        string date = System.DateTime.Now.ToString("yyyy-MM-dd");
+        Debug.Log($"[Placeholder] Guest Session Started. Date: {date}");
+        
         ShowPlayerCountSelection();
     }
 
@@ -59,12 +125,16 @@ public class GameSetupManager : MonoBehaviour
 
     private void ShowPlayerCountSelection()
     {
+        if (welcomeStep) welcomeStep.SetActive(false);
+        if (startGameStep) startGameStep.SetActive(false);
         if (playerCountStep) playerCountStep.SetActive(true);
         if (playerConfigStep) playerConfigStep.SetActive(false);
     }
 
     private void ShowPlayerConfigStep()
     {
+        if (welcomeStep) welcomeStep.SetActive(false);
+        if (startGameStep) startGameStep.SetActive(false);
         if (playerCountStep) playerCountStep.SetActive(false);
         if (playerConfigStep) playerConfigStep.SetActive(true);
 
